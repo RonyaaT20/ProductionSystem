@@ -1,0 +1,434 @@
+﻿@model List<ProductionSystem.Domain.DTOs.ProductDto>
+
+@{
+    ViewData["Title"] = "کالاها";
+    ViewData["Breadcrumb"] = new List<(string, string)>
+    {
+        ("خانه", "/Home/Index"),
+        ("اطلاعات پایه", "#"),
+        ("کالا", "/Product/Index")
+    };
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4>لیست کالاها</h4>
+    <input type="text" id="searchInput" placeholder="جستجو بر اساس عنوان ، کد ، واحد یا پارامترها..." style="  width: 560px; padding: 12px; font-size: 16px; border-radius: 12px; border: 2px solid #1470b8; margin-bottom: 20px; outline: none; margin-left: 60px; text-align: center; color: #1470b8; margin-top:20px; background-color:transparent; height:45px;">
+    <button class="btn btn-primary" onclick="openCreateModal()">+ تعریف کالا</button>
+</div>
+
+<table class="table table-bordered table-hover" id="ProductTable">
+    <thead>
+        <tr>
+            <th>ردیف</th>
+            <th>عنوان</th>
+            <th>کد</th>
+            <th>واحد</th>
+            <th>پارامترها</th>
+            <th>عملیات</th>
+        </tr>
+    </thead>
+    <tbody>
+        @{
+            int row = 1;
+        }
+        @foreach (var p in Model)
+        {
+            <tr>
+                <td>@(row++)</td>
+                <td>@p.Title</td>
+                <td>@p.Code</td>
+                <td>@p.UnitTitle</td>
+                <td>@(p.Parameters != null ? string.Join(", ", p.Parameters.Select(x => x.ParameterTitle).Distinct()) : "-")</td>
+                <td>
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-light" data-bs-toggle="dropdown">⋮</button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#" onclick="openEditModal(@p.Id)">ویرایش</a></li>
+                            <li><a class="dropdown-item text-danger" href="#" onclick="deleteItem(@p.Id)">حذف</a></li>
+                        </ul>
+                    </div>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<!-- Modal -->
+<div class="modal fade" id="itemModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle">تعریف کالا</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="itemId" value="0" />
+                <div class="row">
+                    <!-- سمت راست - فیلدهای اصلی -->
+                    <div class="col-md-5">
+                        <div class="mb-3">
+                            <label class="form-label">عنوان</label>
+                            <input type="text" id="itemTitle" class="form-control" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">کد کالا</label>
+                            <input type="text" id="itemCode" class="form-control" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">واحد</label>
+                            <select id="itemUnitId" class="form-select"></select>
+                        </div>
+                    </div>
+                    <!-- سمت چپ - جدول پارامترها -->
+                    <div class="col-md-7">
+                        <div style="margin-bottom:10px;">
+                            <label class="form-label">افزودن پارامتر</label>
+                            <div class="d-flex gap-2 ">
+                                <select id="itemParameterId" class="form-select" onchange="loadTempValues(this.value)">
+                                    <option value="">انتخاب پارامتر</option>
+                                </select>
+                                <select id="itemValueId" class="form-select">
+                                    <option value="">بدون مقدار</option>
+                                </select>
+                                <button type="button" class="btn btn-outline-primary" onclick="addParameter()">+</button>
+                            </div>
+
+                        </div>
+
+                        <label class="form-label">پارامترهای کالا</label>
+                        <table class="table table-bordered table-sm" id="parameterTable">
+                            <thead>
+                                <tr>
+                                    <th>پارامتر</th>
+                                    <th>مقدار</th>
+                                    <th>حذف</th>
+                                </tr>
+                            </thead>
+                            <tbody id="parameterTableBody">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">انصراف</button>
+                <button type="button" class="btn btn-primary" onclick="saveItem()">ذخیره</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts
+{
+    <style>
+        .is-invalid {
+            border: 2px solid red !important;
+        }
+
+        .invalid-feedback {
+            color: red;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+    </style>
+
+    <script>
+        const searchInput = document.getElementById("searchInput");
+        const rows = document.querySelectorAll("#ProductTable tbody tr");
+
+        searchInput.addEventListener("keyup", function () {
+            const value = this.value.toLowerCase();
+
+            rows.forEach(row => {
+                const rowText = row.innerText.toLowerCase();
+
+                if (rowText.includes(value)) {
+                    row.style.display = "";
+                } else {
+                    row.style.display = "none";
+                }
+            });
+        });
+
+        var modal = new bootstrap.Modal(document.getElementById('itemModal'));
+        var selectedParameters = [];
+
+        // ========== توابع اعتبارسنجی ==========
+        function validateForm(fields) {
+            let isValid = true;
+
+            for (let field of fields) {
+                let element = document.getElementById(field.id);
+                let value = element ? element.value.trim() : '';
+
+                if (value === '' || value === '0' || value === 'false') {
+                    // قرمز کردن فیلد خطا
+                    element.classList.add('is-invalid');
+
+                    // اضافه کردن پیام خطا در زیر فیلد اگر وجود نداشت
+                    let errorDiv = element.nextElementSibling;
+                    if (!errorDiv || !errorDiv.classList.contains('invalid-feedback')) {
+                        errorDiv = document.createElement('div');
+                        errorDiv.className = 'invalid-feedback';
+                        errorDiv.innerText = field.message;
+                        element.parentNode.insertBefore(errorDiv, element.nextSibling);
+                    }
+
+                    isValid = false;
+                } else {
+                    // پاک کردن حالت خطا اگر فیلد درست شده
+                    element.classList.remove('is-invalid');
+                    let errorDiv = element.nextElementSibling;
+                    if (errorDiv && errorDiv.classList.contains('invalid-feedback')) {
+                        errorDiv.remove();
+                    }
+                }
+            }
+
+            return isValid;
+        }
+
+        function addValidationEvents(fields) {
+            for (let field of fields) {
+                let element = document.getElementById(field.id);
+                if (element) {
+                    element.addEventListener('input', function() {
+                        if (this.value.trim() !== '' && this.value !== '0' && this.value !== 'false') {
+                            this.classList.remove('is-invalid');
+                            let errorDiv = this.nextElementSibling;
+                            if (errorDiv && errorDiv.classList.contains('invalid-feedback')) {
+                                errorDiv.remove();
+                            }
+                        }
+                    });
+
+                    element.addEventListener('change', function() {
+                        if (this.value !== '' && this.value !== '0') {
+                            this.classList.remove('is-invalid');
+                            let errorDiv = this.nextElementSibling;
+                            if (errorDiv && errorDiv.classList.contains('invalid-feedback')) {
+                                errorDiv.remove();
+                            }
+                        }
+                    });
+                }
+            }
+        }
+        // ====================================
+
+        function loadUnits(selectedId) {
+            $.get('/Unit/GetAllJson', function (data) {
+                var sel = document.getElementById('itemUnitId');
+                sel.innerHTML = '<option value="">انتخاب کنید</option>';
+                data.forEach(function (u) {
+                    var opt = document.createElement('option');
+                    opt.value = u.id;
+                    opt.text = u.title;
+                    if (selectedId && u.id == selectedId) opt.selected = true;
+                    sel.appendChild(opt);
+                });
+            });
+        }
+
+        function loadParameters() {
+            $.get('/Parameter/GetAllJson', function (data) {
+                var sel = document.getElementById('itemParameterId');
+                sel.innerHTML = '<option value="">انتخاب پارامتر</option>';
+                data.forEach(function (p) {
+                    var opt = document.createElement('option');
+                    opt.value = p.id;
+                    opt.text = p.title;
+                    sel.appendChild(opt);
+                });
+            });
+        }
+
+        function loadTempValues(parameterId) {
+            var sel = document.getElementById('itemValueId');
+            sel.innerHTML = '<option value="">بدون مقدار</option>';
+            if (!parameterId) return;
+            $.get('/Parameter/GetValues?parameterId=' + parameterId, function (data) {
+                data.forEach(function (v) {
+                    var opt = document.createElement('option');
+                    opt.value = v.id;
+                    opt.text = v.title;
+                    sel.appendChild(opt);
+                });
+            });
+        }
+
+        function addParameter() {
+            var paramSel = document.getElementById('itemParameterId');
+            var valueSel = document.getElementById('itemValueId');
+
+            var parameterId = parseInt(paramSel.value);
+            var parameterTitle = paramSel.options[paramSel.selectedIndex].text;
+            var valueId = valueSel.value ? parseInt(valueSel.value) : null;
+            var valueTitle = valueSel.value ? valueSel.options[valueSel.selectedIndex].text : '-';
+
+            if (!parameterId) {
+                alert('لطفاً پارامتر را انتخاب کنید');
+                return;
+            }
+
+            var isDuplicate = selectedParameters.find(p =>
+                p.parameterId == parameterId && p.valueId == valueId
+            );
+
+            if (isDuplicate) {
+                alert('این ترکیب پارامتر و مقدار قبلاً اضافه شده است.');
+                return;
+            }
+
+            selectedParameters.push({
+                parameterId: parameterId,
+                parameterTitle: parameterTitle,
+                valueId: valueId,
+                valueTitle: valueTitle
+            });
+
+            renderParameterTable();
+
+            paramSel.value = '';
+            valueSel.innerHTML = '<option value="">بدون مقدار</option>';
+        }
+
+        function renderParameterTable() {
+            var tbody = document.getElementById('parameterTableBody');
+            tbody.innerHTML = '';
+            selectedParameters.forEach(function (p, index) {
+                var tr = document.createElement('tr');
+                tr.innerHTML = '<td>' + p.parameterTitle + '</td>' +
+                    '<td>' + p.valueTitle + '</td>' +
+                    '<td><button type="button" class="btn btn-sm btn-danger" onclick="removeParameter(' + index + ')">حذف</button></td>';
+                tbody.appendChild(tr);
+            });
+        }
+
+        function removeParameter(index) {
+            selectedParameters.splice(index, 1);
+            renderParameterTable();
+        }
+
+        function openCreateModal() {
+            document.getElementById('modalTitle').innerText = 'تعریف کالای جدید';
+            document.getElementById('itemId').value = 0;
+            document.getElementById('itemTitle').value = '';
+            document.getElementById('itemCode').value = '';
+
+            // پاک کردن خطاها
+            document.getElementById('itemTitle').classList.remove('is-invalid');
+            document.getElementById('itemUnitId').classList.remove('is-invalid');
+
+            selectedParameters = [];
+            renderParameterTable();
+            loadUnits(null);
+            loadParameters();
+            modal.show();
+        }
+
+        function openEditModal(id) {
+            $.get('/Product/GetById?id=' + id, function (data) {
+                document.getElementById('modalTitle').innerText = 'ویرایش کالا';
+                document.getElementById('itemId').value = data.id;
+                document.getElementById('itemTitle').value = data.title;
+                document.getElementById('itemCode').value = data.code;
+
+                // پاک کردن خطاها
+                document.getElementById('itemTitle').classList.remove('is-invalid');
+                document.getElementById('itemUnitId').classList.remove('is-invalid');
+
+                selectedParameters = [];
+
+                if (data.parameters && data.parameters.length > 0) {
+                    data.parameters.forEach(function (p) {
+                        selectedParameters.push({
+                            parameterId: p.parameterId,
+                            parameterTitle: p.parameterTitle,
+                            valueId: p.valueId,
+                            valueTitle: p.valueTitle || '-'
+                        });
+                    });
+                }
+
+                renderParameterTable();
+                loadUnits(data.unitId);
+                loadParameters();
+                modal.show();
+            });
+        }
+
+        // ========== تابع saveItem اصلاح شده با اعتبارسنجی ==========
+        function saveItem() {
+            var id = parseInt(document.getElementById('itemId').value);
+
+            // تعریف فیلدهای اجباری
+            var fields = [
+                {id: 'itemTitle', message: 'عنوان کالا اجباری است'},
+                {id: 'itemCode', message: 'کد کالا اجباری است'},
+                {id: 'itemUnitId', message: 'واحد کالا اجباری است'}
+            ];
+
+            // اضافه کردن event listenerها برای حذف خطا هنگام تایپ (یکبار کافیست)
+            if (window.validationEventsAdded !== true) {
+                addValidationEvents(fields);
+                window.validationEventsAdded = true;
+            }
+
+            // اعتبارسنجی فیلدهای اجباری
+            if (!validateForm(fields)) return;
+
+            var data = {
+                id: id,
+                title: document.getElementById('itemTitle').value,
+                code: document.getElementById('itemCode').value,
+                unitId: parseInt(document.getElementById('itemUnitId').value) || 0,
+                parameters: selectedParameters.map(p => ({
+                    parameterId: p.parameterId,
+                    valueId: p.valueId || null
+                }))
+            };
+
+            var url = id === 0 ? '/Product/CreateAjax' : '/Product/EditAjax';
+            $.ajax({
+                url: url,
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(data),
+                success: function (result) {
+                    if (result.success) {
+                        modal.hide();
+                        location.reload();
+                    }
+                    else alert(result.message);
+                },
+                error: function (xhr, status, error) {
+                    alert('خطایی رخ داده است: ' + error);
+                }
+            });
+        }
+        // =====================================================
+
+        function deleteItem(id) {
+            Swal.fire({
+                title: 'آیا مطمئن هستید؟',
+                text: "این عملیات قابل بازگشت نیست!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'بله، حذف شود',
+                cancelButtonText: 'انصراف'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.post('/Product/DeleteAjax', { id: id }, function (result) {
+                        if (result.success) {
+                            Swal.fire('حذف شد!', '', 'success').then(() => location.reload());
+                        } else {
+                            Swal.fire('امکان حذف وجود ندارد', result.message, 'error');
+                        }
+                    });
+                }
+            });
+        }    </script>
+}

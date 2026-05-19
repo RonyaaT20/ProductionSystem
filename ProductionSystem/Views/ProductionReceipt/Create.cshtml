@@ -1,0 +1,101 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+@model ProductionSystem.Domain.Entities.ProductionReceipt
+
+@{
+    ViewData["Title"] = "ثبت رسید تولید";
+}
+
+<h4>ثبت رسید تولید</h4>
+
+<form asp-action="Create" method="post">
+    <div class="mb-3">
+        <label class="form-label">سفارش</label>
+        <select asp-for="OrderId" class="form-select" onchange="loadOrderInfo(this.value)">
+            <option value="">انتخاب کنید</option>
+            @foreach (var order in ViewBag.Orders)
+            {
+                <option value="@order.Id">@order.Title</option>
+            }
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">کالا (خودکار)</label>
+        <input asp-for="ProductId" type="hidden" id="product-id" />
+        <input type="text" id="product-title" class="form-control" readonly />
+    </div>
+@* 
+    <div class="mb-3">
+        <label class="form-label">پارامتر (خودکار)</label>
+        <input asp-for="ProductParameterId" type="hidden" id="parameter-id" />
+        <select class="form-select" id="parameter-select">
+            <option value="">ابتدا سفارش را انتخاب کنید</option>
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">مقادیر</label>
+        <input asp-for="ParameterValueId" type="hidden" id="parameter-value-id" />
+        <select class="form-select" id="value-select">
+            <option value="">بدون مقدار</option>
+        </select>
+    </div>
+ *@
+    <div class="mb-3">
+        <label class="form-label">مقدار</label>
+        <input asp-for="Quantity" type="number" step="0.001" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">پرسنل (چندتایی)</label>
+        <select name="personnelIds" class="form-select" multiple style="height:120px">
+            @foreach (var personnel in ViewBag.Personnels)
+            {
+                <option value="@personnel.Id">@personnel.Title</option>
+            }
+        </select>
+        <small class="text-muted">برای انتخاب چند نفر، Ctrl را نگه دارید</small>
+    </div>
+
+    <button type="submit" class="btn btn-primary">ثبت و چاپ</button>
+    <a asp-action="Index" class="btn btn-secondary">انصراف</a>
+</form>
+
+<script>
+    function loadOrderInfo(orderId) {
+        if (!orderId) return;
+
+        fetch('/ProductionReceipt/GetProductByOrder?orderId=' + orderId)
+            .then(response => response.json())
+            .then(data => {
+                if (data) {
+                    document.getElementById('product-id').value = data.productId;
+                    document.getElementById('product-title').value = data.productTitle;
+                    document.getElementById('parameter-id').value = data.parameterId;
+
+                    loadParameters(data.parameterId, data.parameterValueId);
+                }
+            });
+    }
+
+    function loadParameters(parameterId, selectedValueId) {
+        fetch('/Parameter/GetValues?parameterId=' + parameterId)
+            .then(response => response.json())
+            .then(data => {
+                var valueSelect = document.getElementById('value-select');
+                valueSelect.innerHTML = '<option value="">بدون مقدار</option>';
+                data.forEach(function (item) {
+                    var option = document.createElement('option');
+                    option.value = item.id;
+                    option.text = item.title;
+                    if (selectedValueId && item.id == selectedValueId)
+                        option.selected = true;
+                    valueSelect.appendChild(option);
+                });
+            });
+    }
+</script>

@@ -1,0 +1,63 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+@model ProductionSystem.Domain.Entities.Role
+
+@{
+    ViewData["Title"] = "تعریف نقش";
+}
+
+<h4>تعریف نقش جدید</h4>
+
+<form asp-action="Create" method="post">
+    <div class="mb-3">
+        <label class="form-label">عنوان نقش</label>
+        <input asp-for="Title" class="form-control" placeholder="مثلاً: اپراتور، مدیر تولید" />
+        <span asp-validation-for="Title" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">دسترسی‌ها</label>
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="permissions" value="Unit">
+            <label class="form-check-label">واحد</label>
+        </div>
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="permissions" value="Parameter">
+            <label class="form-check-label">پارامتر</label>
+        </div>
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="permissions" value="Product">
+            <label class="form-check-label">کالا</label>
+        </div>
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="permissions" value="Personnel">
+            <label class="form-check-label">پرسنل</label>
+        </div>
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="permissions" value="Customer">
+            <label class="form-check-label">مشتری</label>
+        </div>
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="permissions" value="Order">
+            <label class="form-check-label">سفارش</label>
+        </div>
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="permissions" value="ProductionReceipt">
+            <label class="form-check-label">رسید تولید</label>
+        </div>
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="permissions" value="WasteReceipt">
+            <label class="form-check-label">رسید ضایعات</label>
+        </div>
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="permissions" value="Report">
+            <label class="form-check-label">گزارش تولید</label>
+        </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary">ذخیره</button>
+    <a asp-action="Index" class="btn btn-secondary">انصراف</a>
+</form>

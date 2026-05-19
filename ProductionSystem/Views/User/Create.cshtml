@@ -1,0 +1,58 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+@model ProductionSystem.Domain.Entities.User
+
+@{
+    ViewData["Title"] = "تعریف کاربر";
+}
+
+<h4>تعریف کاربر جدید</h4>
+
+<form asp-action="Create" method="post">
+    <div class="mb-3">
+        <label class="form-label">نام کامل</label>
+        <input asp-for="FullName" class="form-control" />
+        <span asp-validation-for="FullName" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">نام کاربری</label>
+        <input asp-for="Username" class="form-control" />
+        <span asp-validation-for="Username" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">رمز عبور</label>
+        <input asp-for="PasswordHash" type="password" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">شماره موبایل</label>
+        <input asp-for="Mobile" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">نقش</label>
+        <select asp-for="RoleId" class="form-select">
+            <option value="">انتخاب کنید</option>
+            @foreach (var role in ViewBag.Roles)
+            {
+                <option value="@role.Id">@role.Title</option>
+            }
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">وضعیت</label>
+        <select asp-for="IsActive" class="form-select">
+            <option value="true">فعال</option>
+            <option value="false">غیرفعال</option>
+        </select>
+    </div>
+
+    <button type="submit" class="btn btn-primary">ذخیره</button>
+    <a asp-action="Index" class="btn btn-secondary">انصراف</a>
+</form>

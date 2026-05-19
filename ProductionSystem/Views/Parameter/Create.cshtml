@@ -1,0 +1,62 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+@model ProductionSystem.Domain.Entities.ProductParameter
+
+@{
+    ViewData["Title"] = "تعریف پارامتر";
+}
+
+<h4>تعریف پارامتر جدید</h4>
+
+<form asp-action="Create" method="post">
+    <div class="mb-3">
+        <label class="form-label">عنوان</label>
+        <input asp-for="Title" class="form-control" />
+        <span asp-validation-for="Title" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">کد پارامتر</label>
+        <input asp-for="Code" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">واحد</label>
+        <select asp-for="UnitId" class="form-select">
+            <option value="">بدون واحد</option>
+            @foreach (var unit in ViewBag.Units)
+            {
+                <option value="@unit.Id">@unit.Title</option>
+            }
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">مقادیر</label>
+        <div id="values-container">
+            <div class="input-group mb-2">
+                <input type="text" name="values" class="form-control" placeholder="مقدار اول" />
+            </div>
+        </div>
+        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="addValue()">
+            + افزودن مقدار
+        </button>
+    </div>
+
+    <button type="submit" class="btn btn-primary">ذخیره</button>
+    <a asp-action="Index" class="btn btn-secondary">انصراف</a>
+</form>
+
+<script>
+    function addValue() {
+        var container = document.getElementById('values-container');
+        var div = document.createElement('div');
+        div.className = 'input-group mb-2';
+        div.innerHTML = '<input type="text" name="values" class="form-control" placeholder="مقدار جدید" />' +
+            '<button type="button" class="btn btn-outline-danger" onclick="this.parentNode.remove()">حذف</button>';
+        container.appendChild(div);
+    }
+</script>

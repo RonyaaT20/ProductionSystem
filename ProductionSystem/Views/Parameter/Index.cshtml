@@ -1,0 +1,498 @@
+﻿@model List<ProductionSystem.Domain.DTOs.ParameterDto>
+
+@{
+    ViewData["Title"] = "پارامترها";
+    ViewData["Breadcrumb"] = new List<(string, string)>
+    {
+        ("خانه", "/Home/Index"),
+        ("اطلاعات پایه", "#"),
+        ("پارامتر", "/Parameter/Index")
+    };
+}
+<style>
+    .btn-group {
+        gap: 5px;
+    }
+
+    .value-edit-input {
+        direction: ltr;
+        text-align: right;
+    }
+
+    .btn-group .btn {
+        border-radius: 6px !important;
+    }
+</style>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4>لیست پارامترها</h4>
+    <input type="text" id="searchInput" placeholder="جستجو بر اساس عنوان ، کد ، واحد یا مقادیر..." style="  width: 560px; padding: 12px; font-size: 16px; border-radius: 12px; border: 2px solid #1470b8; margin-bottom: 20px; outline: none; margin-left: 60px; text-align: center; color: #1470b8; margin-top:20px; background-color:transparent; height:45px;">
+    <button class="btn btn-primary" onclick="openCreateModal()">+ تعریف پارامتر</button>
+</div>
+
+<table class="table table-bordered table-hover" id="ParameterTable">
+    <thead>
+        <tr>
+            <th>ردیف</th>
+            <th>عنوان</th>
+            <th>کد</th>
+            <th>واحد</th>
+            <th>مقادیر</th>
+            <th>عملیات</th>
+        </tr>
+    </thead>
+    <tbody>
+        @{
+            int row = 1;
+        }
+        @foreach (var p in Model)
+        {
+            <tr>
+                <td>@(row++)</td>
+                <td>@p.Title</td>
+                <td>@p.Code</td>
+                <td>@p.UnitTitle</td>
+                <td>@(p.Values != null ? string.Join(", ", p.Values) : "-")</td>
+                <td>
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-light" data-bs-toggle="dropdown">⋮</button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#" onclick="openValuesModal(@p.Id, '@p.Title')">مقادیر</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="openEditModal(@p.Id)">ویرایش</a></li>
+                            <li><a class="dropdown-item text-danger" href="#" onclick="deleteItem(@p.Id)">حذف</a></li>
+                        </ul>
+                    </div>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<!-- Modal ویرایش -->
+<div class="modal fade" id="itemModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle">تعریف پارامتر</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="itemId" value="0" />
+                <div class="mb-3">
+                    <label class="form-label">عنوان</label>
+                    <input type="text" id="itemTitle" class="form-control" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">کد پارامتر</label>
+                    <input type="text" id="itemCode" class="form-control" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">واحد</label>
+                    <select id="itemUnitId" class="form-select"></select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">انصراف</button>
+                <button type="button" class="btn btn-primary" onclick="saveItem()">ذخیره</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal مقادیر کامل CRUD -->
+<!-- Modal مقادیر -->
+<div class="modal fade" id="valuesModal" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="valuesModalTitle">مقادیر پارامتر</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="valuesParameterId" />
+
+                <!-- افزودن مقدار جدید -->
+                <div class="row mb-3">
+                    <div class="col-md-8">
+                        <input type="text" id="newValueInput" class="form-control" placeholder="مقدار جدید را وارد کنید..." />
+                    </div>
+                    <div class="col-md-4">
+                        <button class="btn btn-primary w-100" onclick="addValue()">+ افزودن</button>
+                    </div>
+                </div>
+
+                <!-- جدول مقادیر -->
+                <table class="table table-bordered table-hover" id="valuesTable">
+                    <thead>
+                        <tr>
+                            <th style="width:80px">ردیف</th>
+                            <th>مقدار</th>
+                            <th style="width:100px">عملیات</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="window.location.reload();">
+                    بستن
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts
+{
+    <style>
+        .is-invalid {
+            border: 2px solid red !important;
+        }
+
+        .invalid-feedback {
+            color: red;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+    </style>
+
+    <script>
+                    // ====================== متغیرهای جهانی ======================
+                    let currentValues = [];
+                    let currentParameterId = null;
+                    let modal, valuesModal;
+
+                    $(document).ready(function () {
+                        modal = new bootstrap.Modal(document.getElementById('itemModal'));
+                        valuesModal = new bootstrap.Modal(document.getElementById('valuesModal'));
+                    });
+
+                    // ====================== جستجو ======================
+                    document.getElementById("searchInput").addEventListener("keyup", function () {
+                        const value = this.value.toLowerCase();
+                        document.querySelectorAll("#ParameterTable tbody tr").forEach(row => {
+                            row.style.display = row.innerText.toLowerCase().includes(value) ? "" : "none";
+                        });
+                    });
+
+                    // ====================== CRUD اصلی پارامتر ======================
+                    function openCreateModal() {
+                        document.getElementById('modalTitle').innerText = 'تعریف پارامتر جدید';
+                        document.getElementById('itemId').value = 0;
+                        document.getElementById('itemTitle').value = '';
+                        document.getElementById('itemCode').value = '';
+                        document.getElementById('itemUnitId').value = '';
+                        removeValidationErrors();
+                        loadUnits(null);
+                        modal.show();
+                    }
+
+                    function openEditModal(id) {
+                        $.get('/Parameter/GetById?id=' + id, function (data) {
+                            document.getElementById('modalTitle').innerText = 'ویرایش پارامتر';
+                            document.getElementById('itemId').value = data.id;
+                            document.getElementById('itemTitle').value = data.title;
+                            document.getElementById('itemCode').value = data.code;
+                            removeValidationErrors();
+                            loadUnits(data.unitId);
+                            modal.show();
+                        });
+                    }
+
+                    function saveItem() {
+                        const id = parseInt(document.getElementById('itemId').value);
+                        const fields = [
+                            { id: 'itemTitle', message: 'عنوان اجباری است' },
+                            { id: 'itemCode', message: 'کد اجباری است' }
+                        ];
+
+                        if (!validateForm(fields)) return;
+
+                        const data = {
+                            id: id,
+                            title: document.getElementById('itemTitle').value.trim(),
+                            code: document.getElementById('itemCode').value.trim(),
+                            unitId: document.getElementById('itemUnitId').value || null
+                        };
+
+                        const url = id === 0 ? '/Parameter/CreateAjax' : '/Parameter/EditAjax';
+
+                        $.ajax({
+                            url: url,
+                            type: 'POST',
+                            contentType: 'application/json',
+                            data: JSON.stringify(data),
+                            success: function (result) {
+                                if (result.success) {
+                                    modal.hide();
+                                    location.reload();
+                                } else alert(result.message || 'خطا');
+                            }
+                        });
+                    }
+
+                    // ====================== مقادیر (CRUD داخل Modal) ======================
+                    function openValuesModal(parameterId, parameterTitle) {
+                        currentParameterId = parameterId;
+                        document.getElementById('valuesModalTitle').innerText = `مقادیر: ${parameterTitle}`;
+                        document.getElementById('newValueInput').value = '';
+                        currentValues = [];
+                        loadValues(parameterId);
+                        valuesModal.show();
+                    }
+
+                    function loadValues(parameterId) {
+                        $.get('/Parameter/GetById?id=' + parameterId, function (data) {
+                            currentValues = (data.values || []).map(v => ({ title: v }));
+                            renderValuesTable();
+                        });
+                    }
+
+                function renderValuesTable() {
+                    const tbody = document.querySelector('#valuesTable tbody');
+                    tbody.innerHTML = currentValues.length === 0
+                        ? `<tr><td colspan="3" class="text-center py-4">هیچ مقداری تعریف نشده است</td></tr>`
+                        : '';
+
+                    currentValues.forEach((val, i) => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td>${i+1}</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="value-text-${i}" style="flex:1">${escapeHtml(val.title)}</span>
+                                    <input type="text"
+                                           class="form-control form-control-sm value-edit-input-${i}"
+                                           value="${escapeHtml(val.title)}"
+                                           style="display:none; width:200px;">
+                                </div>
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <button class="btn btn-outline-primary" onclick="editValue(${i})" id="editBtn-${i}">
+                                        ویرایش
+                                    </button>
+                                    <button class="btn btn-outline-success" onclick="saveValue(${i})" id="saveBtn-${i}" style="display:none;">
+                                        ذخیره 
+                                    </button>
+                                    <button class="btn btn-outline-danger" onclick="deleteValue(${i})">
+                                        حذف
+                                    </button>
+                                    <button class="btn btn-outline-secondary" onclick="cancelEdit(${i})" id="cancelBtn-${i}" style="display:none;">
+                                        انصراف
+                                    </button>
+                                </div>
+                             </td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                }
+                        // ویرایش مقدار (نمایش فیلد ورودی)
+                function editValue(index) {
+                    // مخفی کردن متن نمایشی
+                    const textSpan = document.querySelector(`.value-text-${index}`);
+                    const editInput = document.querySelector(`.value-edit-input-${index}`);
+                    const editBtn = document.getElementById(`editBtn-${index}`);
+                    const saveBtn = document.getElementById(`saveBtn-${index}`);
+
+                    textSpan.style.display = 'none';
+                    editInput.style.display = 'block';
+                    editBtn.style.display = 'none';
+                    saveBtn.style.display = 'inline-block';
+
+                    editInput.focus();
+                }
+
+                // ذخیره مقدار ویرایش شده
+                async function saveValue(index) {
+                    const editInput = document.querySelector(`.value-edit-input-${index}`);
+                    const newValue = editInput.value.trim();
+                    const oldValue = currentValues[index].title;
+
+                    if (!newValue) {
+                        Swal.fire('خطا', 'مقدار نمی‌تواند خالی باشد', 'error');
+                        return;
+                    }
+
+                    if (newValue === oldValue) {
+                        cancelEdit(index);
+                        return;
+                    }
+
+                    // بررسی تکراری نبودن
+                    if (currentValues.some((v, idx) => idx !== index && v.title === newValue)) {
+                        Swal.fire('خطا', 'این مقدار تکراری است', 'error');
+                        return;
+                    }
+
+                    try {
+                        const response = await $.ajax({
+                            url: '/Parameter/UpdateValue',
+                            type: 'POST',
+                            contentType: 'application/json',
+                            data: JSON.stringify({
+                                parameterId: currentParameterId,
+                                oldValue: oldValue,
+                                newValue: newValue
+                            })
+                        });
+
+                        if (response.success) {
+                            currentValues[index].title = newValue;
+                            cancelEdit(index);
+                            renderValuesTable(); // رفرش کامل جدول
+                            Swal.fire('موفق', 'مقدار با موفقیت ویرایش شد', 'success');
+                        } else {
+                            Swal.fire('خطا', response.message || 'خطا در ویرایش مقدار', 'error');
+                        }
+                    } catch (err) {
+                        console.error(err);
+                        Swal.fire('خطا', 'ارتباط با سرور برقرار نشد', 'error');
+                    }
+                }
+
+                // لغو ویرایش
+                function cancelEdit(index) {
+                    const textSpan = document.querySelector(`.value-text-${index}`);
+                    const editInput = document.querySelector(`.value-edit-input-${index}`);
+                    const editBtn = document.getElementById(`editBtn-${index}`);
+                    const saveBtn = document.getElementById(`saveBtn-${index}`);
+
+                    textSpan.style.display = 'block';
+                    editInput.style.display = 'none';
+                    editBtn.style.display = 'inline-block';
+                    saveBtn.style.display = 'none';
+
+                    // برگرداندن مقدار قبلی
+                    editInput.value = currentValues[index].title;
+                }
+
+
+        async function addValue() {
+            const input = document.getElementById('newValueInput');
+            const val = input.value.trim();
+
+            if (!val) {
+                Swal.fire('خطا', 'مقدار را وارد کنید', 'error');
+                return;
+            }
+
+            // بررسی تکراری نبودن در لیست فعلی
+            if (currentValues.some(v => v.title === val)) {
+                Swal.fire('خطا', 'این مقدار تکراری است', 'error');
+                return;
+            }
+
+            // ذخیره مستقیم در دیتابیس
+            try {
+                const response = await $.ajax({
+                    url: '/Parameter/AddValue',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        parameterId: currentParameterId,
+                        value: val
+                    })
+                });
+
+                if (response.success) {
+                    // به لیست محلی اضافه کن
+                    currentValues.push({ title: val });
+                    renderValuesTable();
+                    input.value = '';
+                    Swal.fire('موفق', 'مقدار با موفقیت اضافه شد', 'success');
+                } else {
+                    Swal.fire('خطا', response.message || 'خطا در ذخیره مقدار', 'error');
+                }
+
+            } catch (err) {
+                console.error(err);
+                Swal.fire('خطا', 'ارتباط با سرور برقرار نشد', 'error');
+            }
+                }
+
+                async function deleteValue(index) {
+                    const valueTitle = currentValues[index].title;
+
+                    const confirmed = await Swal.fire({
+                        title: 'حذف مقدار',
+                        text: `آیا از حذف "${valueTitle}" مطمئن هستید؟`,
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: 'بله، حذف شود',
+                        cancelButtonText: 'انصراف'
+                    });
+
+                    if (!confirmed.isConfirmed) return;
+
+                    console.log("Parameter id => ", currentParameterId)
+                    console.log("ValueTitle => ", valueTitle)
+
+                    const canDelete = await handleDeleteValue(currentParameterId, valueTitle);
+                    if (!canDelete) return;
+
+                    currentValues.splice(index, 1);
+                    renderValuesTable();
+                }
+
+                    function escapeHtml(text) {
+                        return text.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m]);
+                    }
+
+                    function removeValidationErrors() {
+                        document.querySelectorAll('.is-invalid, .invalid-feedback').forEach(el => el.remove());
+                    }
+
+                    function validateForm(fields) {
+                        let valid = true;
+                        fields.forEach(f => {
+                            const el = document.getElementById(f.id);
+                            if (!el.value.trim()) {
+                                el.classList.add('is-invalid');
+                                valid = false;
+                            }
+                        });
+                        return valid;
+                    }
+
+                    function loadUnits(selectedId) {
+                        $.get('/Unit/GetAllJson', function (data) {
+                            const sel = document.getElementById('itemUnitId');
+                            sel.innerHTML = '<option value="">بدون واحد</option>';
+                            data.forEach(u => {
+                                const opt = new Option(u.title, u.id);
+                                if (u.id == selectedId) opt.selected = true;
+                                sel.add(opt);
+                            });
+                        });
+                    }
+            async function handleDeleteValue(parameterId, valueTitle) {
+                try {
+                    const response = await $.ajax({
+                        url: '/Parameter/DeleteValue',
+                        type: 'POST',
+                        data: {
+                            parameterId: parameterId,
+                            value: valueTitle
+                        }
+                    });
+
+                    if (!response.success) {
+                        Swal.fire('امکان حذف وجود ندارد', response.message || 'این مقدار در سیستم استفاده شده است', 'error');
+                        return false;
+                    }
+                    return true;
+                } catch (e) {
+                    console.error(e);
+                    Swal.fire('خطا', 'خطا در بررسی وابستگی مقدار', 'error');
+                    return false;
+                }
+                    }
+                    function deleteItem(id) {
+                        Swal.fire({ title: 'حذف؟', text: 'مطمئن هستید؟', icon: 'warning', showCancelButton: true })
+                            .then(r => {
+                                if (r.isConfirmed) $.post('/Parameter/DeleteAjax', {id}, res => res.success ? location.reload() : Swal.fire('خطا', res.message, 'error'));
+                            });
+                    }
+
+    </script>
+}

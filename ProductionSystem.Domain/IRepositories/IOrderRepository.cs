@@ -1,0 +1,8 @@
+﻿using ProductionSystem.Domain.Entities;
+
+namespace ProductionSystem.Domain.IRepositories
+{
+    public interface IOrderRepository : IGenericRepository<Order>
+    {
+    }
+}

@@ -1,0 +1,189 @@
+# Visual Studio / ASP.NET Core specific
+.vs/
+.idea/
+.vscode/
+*.user
+*.suo
+*.dbmdl
+*.cache
+*.cachefile
+*.log
+*.tlog
+
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+build/
+bld/
+[Bb]in/
+[Oo]bj/
+[Bb]inaries/
+Generated\ Files/
+
+# dotnet build output
+*.dll
+*.exe
+*.exe.config
+*.pdb
+*.pidb
+*.scc
+*.nupkg
+*.nuspec
+*.snk
+*.pfx
+
+# Test results
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+*.trx
+*.coverage
+*.coveragexml
+*.sonarqube/
+
+# Node.js / JavaScript
+node_modules/
+npm-debug.log
+yarn-error.log
+yarn-debug.log
+package-lock.json
+
+# ASP.NET Core specific
+appsettings.*.json
+appsettings.Development.json
+appsettings.Staging.json
+appsettings.Production.json
+wwwroot/lib/
+wwwroot/dist/
+ClientApp/dist/
+ClientApp/node_modules/
+
+# Entity Framework Core
+/Migrations/
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs
+logs/
+*.log
+*.txt
+serilog*.json
+Logs/
+
+# User-specific files
+*.rsuser
+*.csproj.user
+*.vbproj.user
+*.fsproj.user
+*.dbproj.user
+*.sln.docstates
+*.sln.ide
+
+# Publishing profiles
+*.pubxml
+*.pubxml.user
+*.publishproj
+[Pp]ublish/
+
+# Azure Functions
+local.settings.json
+*.azurefunction/
+
+# Docker
+.docker/
+docker-compose*.override.yml
+.env
+.env.*
+!.env.example
+
+# IDE
+_ReSharper.Caches/
+*.DotSettings.user
+*.DotSettings
+*.sln.ide/
+*.idea/
+*.vsp
+*.vspx
+*.sap
+
+# Diagnostics
+*.vspscc
+*.vssscc
+build.ps1
+*.tmp
+*.temp
+*.cache
+*.bak
+*.backup
+
+# Coverage report
+*.coverlet
+*.coverage
+*.dotCover
+*.trx
+
+# NuGet packages
+packages/
+*.nupkg
+*.snupkg
+!*.nupkg.sha512
+NuGet.config
+nuget.exe
+
+# .NET Core / .NET 5/6/7/8 specific
+*.pfx
+*.pem
+*.crt
+*.cer
+*.key
+*.rd.xml
+*.pubxml
+*.pubxml.user
+
+# Visual Studio Code
+.history/
+*.code-workspace
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*.vs/
+
+# Backup & temp files
+~$*
+*~
+*.tmp
+*.temp
+*.lck
+*.lock
+*.pid
+*.seed
+*.pidb
+*.pdb
+
+# Python (if using Python services)
+__pycache__/
+*.py[cod]
+*.so
+.Python
+
+# Linux/Mac specific
+.DS_Store
+Thumbs.db
+Desktop.ini
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+*[Dd]esktop.ini
+
+# Health check endpoints
+healthchecksdb
+
+# Benchmark results
+BenchmarkDotNet.Artifacts/

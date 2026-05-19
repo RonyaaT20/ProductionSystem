@@ -1,0 +1,33 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+@model ProductionSystem.Domain.Entities.Personnel
+
+@{
+    ViewData["Title"] = "تعریف پرسنل";
+}
+
+<h4>تعریف پرسنل جدید</h4>
+
+<form asp-action="Create" method="post">
+    <div class="mb-3">
+        <label class="form-label">عنوان</label>
+        <input asp-for="Title" class="form-control" />
+        <span asp-validation-for="Title" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">کد پرسنلی</label>
+        <input asp-for="Code" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">شماره موبایل</label>
+        <input asp-for="Mobile" class="form-control" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">ذخیره</button>
+    <a asp-action="Index" class="btn btn-secondary">انصراف</a>
+</form>

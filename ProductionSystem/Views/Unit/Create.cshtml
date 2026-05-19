@@ -1,0 +1,40 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+@model ProductionSystem.Domain.Entities.Unit
+
+@{
+    ViewData["Title"] = "تعریف واحد";
+}
+
+<h4>تعریف واحد جدید</h4>
+
+<form asp-action="Create" method="post">
+    <div class="mb-3">
+        <label class="form-label">عنوان</label>
+        <input asp-for="Title" class="form-control" />
+        <span asp-validation-for="Title" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">مقداری / شمارشی</label>
+        <select asp-for="UnitKind" class="form-select">
+            <option value="0">مقداری</option>
+            <option value="1">شمارشی</option>
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">تعداد رقم اعشار</label>
+        <input asp-for="DecimalPlaces" type="number" class="form-control" min="0" max="6" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">ایجادکننده</label>
+        <input asp-for="CreatedBy" class="form-control" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">ذخیره</button>
+    <a asp-action="Index" class="btn btn-secondary">انصراف</a>
+</form>

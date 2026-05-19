@@ -1,0 +1,76 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+@model ProductionSystem.Domain.Entities.Customer
+
+@{
+    ViewData["Title"] = "تعریف مشتری";
+}
+
+<h4>تعریف مشتری جدید</h4>
+
+<form asp-action="Create" method="post">
+    <div class="mb-3">
+        <label class="form-label">عنوان</label>
+        <input asp-for="Title" class="form-control" />
+        <span asp-validation-for="Title" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">کد</label>
+        <input asp-for="Code" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">شماره موبایل</label>
+        <input asp-for="Mobile" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">استان</label>
+        <select asp-for="Province" class="form-select" onchange="loadCities(this.value)">
+            <option value="">انتخاب کنید</option>
+            <option>تهران</option>
+            <option>اصفهان</option>
+            <option>خراسان رضوی</option>
+            <option>فارس</option>
+            <option>آذربایجان شرقی</option>
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">شهرستان</label>
+        <select asp-for="City" class="form-select" id="city-select">
+            <option value="">ابتدا استان را انتخاب کنید</option>
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">آدرس</label>
+        <textarea asp-for="Address" class="form-control" rows="3"></textarea>
+    </div>
+
+    <button type="submit" class="btn btn-primary">ذخیره</button>
+    <a asp-action="Index" class="btn btn-secondary">انصراف</a>
+</form>
+
+<script>
+    function loadCities(province) {
+        var citySelect = document.getElementById('city-select');
+        citySelect.innerHTML = '<option value="">در حال بارگذاری...</option>';
+
+        fetch('/Customer/GetCities?province=' + encodeURIComponent(province))
+            .then(response => response.json())
+            .then(data => {
+                citySelect.innerHTML = '<option value="">انتخاب کنید</option>';
+                data.forEach(function (city) {
+                    var option = document.createElement('option');
+                    option.value = city;
+                    option.text = city;
+                    citySelect.appendChild(option);
+                });
+            });
+    }
+</script>

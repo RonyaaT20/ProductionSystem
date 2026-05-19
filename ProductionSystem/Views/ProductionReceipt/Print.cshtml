@@ -1,0 +1,285 @@
+﻿@model ProductionSystem.Domain.Entities.ProductionReceipt
+
+@{
+    ViewData["Title"] = "چاپ لیبل";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لیبل</title>
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: white;
+            font-family: Tahoma, sans-serif;
+        }
+
+        .page-center {
+            width: 9.5cm;
+            margin: 20px auto;
+        }
+
+        .lable {
+            width: 9.5cm;
+            border: 1px solid black;
+            font-size: 11px;
+        }
+
+        /* ردیف اول */
+        .first {
+            display: table;
+            width: 100%;
+            height: 2cm;
+            border-bottom: 1px solid black;
+        }
+
+            .first .logo {
+                display: table-cell;
+                width: 1.8cm;
+                border-left: 1px solid black;
+            }
+
+            .first .info {
+                display: table-cell;
+                vertical-align: top;
+            }
+
+                .first .info .name {
+                    height: 1cm;
+                    border-bottom: 1px solid black;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-weight: bold;
+                    font-size: 12px;
+                }
+
+                .first .info .data {
+                    display: table;
+                    width: 100%;
+                    height: 1cm;
+                }
+
+                    .first .info .data > div {
+                        display: table-cell;
+                        vertical-align: middle;
+                        text-align: center;
+                        font-size: 9px;
+                        padding: 2px;
+                    }
+
+                    .first .info .data .three {
+                        border-right: 1px solid black;
+                        width:3.6cm;
+                    }
+
+                    .first .info .data .four {
+                        width: 3.6cm;
+                    }
+
+
+                        /* ردیف دوم */
+        .second {
+            display: table;
+            width: 100%;
+            height: 7cm;
+            border-bottom: 1px solid black;
+            table-layout: fixed;
+        }
+
+            .second .right {
+                display: table-cell;
+                width: 5.15cm;
+                vertical-align: top;
+                overflow: hidden;
+            }
+
+                .second .right .param-table {
+                    width: 100%;
+                    height: 7cm;
+                    border-collapse: collapse;
+                    table-layout: fixed;
+                }
+
+                    .second .right .param-table td {
+                        border-bottom: 1px solid black;
+                        text-align: center;
+                        vertical-align: middle;
+                        padding: 2px;
+                        overflow: hidden;
+                        word-break: break-all;
+                    }
+
+                    .second .right .param-table tr:last-child td {
+                        border-bottom: none;
+                    }
+
+                    .second .right .param-table td:first-child {
+                        border-left: 1px solid black;
+                    }
+
+            .second .left {
+                display: table-cell;
+                width: 3.8cm;
+                border-right: 1px solid black;
+                vertical-align: top;
+            }
+
+                .second .left .weight {
+                    height: 3.5cm;
+                }
+
+                    .second .left .weight:first-child {
+                        border-bottom: 1px solid black;
+                    }
+
+                    .second .left .weight .wtitle {
+                        height: 0.74cm;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-size: 10px;
+                        font-weight: bold;
+                    }
+
+                    .second .left .weight .wvalue {
+                        border-top: 1px solid black;
+                        height: 2.76cm;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        font-size: 18px;
+                        font-weight: bold;
+                    }
+
+        /* بارکد */
+        .third {
+            height: 1.76cm;
+            border-bottom: 1px solid black;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        /* آدرس */
+        .last {
+            height: 1cm;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 9px;
+            gap: 20px;
+        }
+
+        @@media print {
+            @@page {
+                size: 9.5cm 12.5cm;
+                margin: 0;
+            }
+
+            html, body {
+                width: 9.5cm;
+                height: 12.5cm;
+                margin: 0;
+                padding: 0;
+                overflow: hidden;
+            }
+
+            .page-center {
+                margin-top: 0.25cm;
+                margin-right: 0.5cm;
+                width: 9cm;
+            }
+
+            .lable {
+                width: 8.5cm;
+                height: 12cm;
+                overflow: hidden;
+            }
+        }
+    </style>
+</head>
+<body onload="window.print()">
+
+    <div class="page-center">
+        <div class="lable">
+
+            <div class="first">
+                <div class="logo"></div>
+                <div class="info">
+                    <div class="name">MOMTAZNAKH MANA ISATIS</div>
+                    <div class="data">
+                        <div class="four">نام کالا</div>
+                        <div class="three">@(Model.Product != null ? Model.Product.Title : "-")</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="second">
+                <div class="right">
+                    @if (Model.ProductReceiptParameters != null && Model.ProductReceiptParameters.Any())
+                    {
+                        var count = Model.ProductReceiptParameters.Count;
+                        var rowHeightPct = Math.Round(100.0 / count, 2);
+                        var fontSize = count > 10 ? 7 : count > 7 ? 8 : 9;
+
+                        <table class="param-table">
+                            @foreach (var value in Model.ProductReceiptParameters)
+                            {
+                                <tr style="height:@(rowHeightPct.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture))%">
+                                    <td style="font-size:@(fontSize)px">@value.ProductParameter.Title</td>
+                                    <td style="font-size:@(fontSize)px">@value.ParameterValue.Title</td>
+
+                                </tr>
+                            }
+                        </table>
+                    }
+                </div>
+
+                <div class="left">
+                    <div class="weight">
+                        <div class="wtitle">وزن ناخالص</div>
+                        <div class="wvalue">750/750</div>
+                    </div>
+                    <div class="weight">
+                        <div class="wtitle">وزن خالص</div>
+                        <div class="wvalue">750/750</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="third">
+                <svg id="barcode"></svg>
+            </div>
+
+            <div class="last">
+                <span>شهرک صنعتی یزد فاز سوم بلوار مینا مینا 7</span>
+                <span>0353800</span>
+            </div>
+
+        </div>
+    </div>
+    <a href="/ProductionReceipt/Index" style="width: 100px; height: 50px; background-color:red; color:white; font-weight:bold; margin:0px 710px; border-radius:15px; border:none; font-size: 20px; padding:15px 20px; text-decoration:none; ">بستن</a>
+    <script>
+        JsBarcode("#barcode", "@Model.Barcode", {
+            format: "CODE128",
+            width: 1,
+            height: 35,
+            displayValue: true,
+            fontSize: 8,
+            margin: 2
+        });
+    </script>
+</body>
+</html>

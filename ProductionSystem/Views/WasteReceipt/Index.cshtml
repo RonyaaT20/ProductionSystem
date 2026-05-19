@@ -1,0 +1,344 @@
+﻿@model List<ProductionSystem.Domain.DTOs.WasteReceiptDto>
+
+@{
+    ViewData["Title"] = "رسید ضایعات";
+    ViewData["Breadcrumb"] = new List<(string, string)>
+    {
+        ("خانه", "/Home/Index"),
+        ("تولید", "#"),
+        ("رسید ضایعات", "/WasteReceipt/Index")
+    };
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4>لیست رسیدهای ضایعات</h4>
+    <input type="text" id="searchInput" placeholder="جستجو بر اساس عنوان ، کد ، واحد یا مقادیر..." style="  width: 560px; padding: 12px; font-size: 16px; border-radius: 12px; border: 2px solid #1470b8; margin-bottom: 20px; outline: none; margin-left: 60px; text-align: center; color: #1470b8; margin-top:20px; background-color:transparent; height:45px;">
+    <button class="btn btn-primary" onclick="openCreateModal()">+ ثبت رسید ضایعات</button>
+</div>
+
+<table class="table table-bordered table-hover" id="WasteReceiptTable">
+    <thead>
+    <tr>
+        <th>ردیف</th>
+        <th>سفارش</th>
+        <th>کالا</th>
+        <th>پارامتر</th>
+        <th>مقدار</th>
+        <th>تاریخ</th>
+        <th>عملیات</th>
+    </tr>
+    </thead>
+    <tbody>
+    @{
+        int row = 1;
+    }
+    @foreach (var r in Model)
+    {
+        <tr>
+            <td>@(row++)</td>
+            <td>@r.OrderTitle</td>
+            <td>@r.ProductTitle</td>
+            <td>@r.ParameterTitle @(r.ParameterValueTitle != "-" ? " : " + r.ParameterValueTitle : "")</td>
+            <td>@r.Quantity</td>
+            <td>@r.CreatedAt</td>
+            <td>
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-light" data-bs-toggle="dropdown">⋮</button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item text-danger" href="#" onclick="deleteItem(@r.Id)">حذف</a></li>
+                    </ul>
+                </div>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>
+
+<div class="modal fade" id="itemModal" tabindex="-1">
+    @* <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">ثبت رسید ضایعات</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">سفارش</label>
+                    <select id="itemOrderId" class="form-select" onchange="loadOrderInfo(this.value)"></select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">کالا (خودکار)</label>
+                    <input type="hidden" id="itemProductId" />
+                    <input type="text" id="itemProductTitle" class="form-control" readonly />
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">پارامتر (خودکار)</label>
+                        <input type="hidden" id="itemParameterId" />
+                        <input type="text" id="itemParameterTitle" class="form-control" readonly />
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">مقادیر</label>
+                        <select id="itemValueId" class="form-select">
+                            <option value="">بدون مقدار</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">مقدار ضایعات</label>
+                    <input type="number" id="itemQuantity" step="0.001" class="form-control" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">پرسنل (چندتایی - Ctrl برای انتخاب چندتا)</label>
+                    <select id="itemPersonnelIds" class="form-select" multiple style="height:120px"></select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">انصراف</button>
+                <button type="button" class="btn btn-primary" onclick="saveItem()">ثبت</button>
+            </div>
+        </div>
+    </div> *@
+    <!-- Modal ثبت -->
+    <div class="modal fade" id="itemModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">ثبت رسید ضایعات</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">سفارش (اختیاری)</label>
+                                <select id="itemOrderId" class="form-select" onchange="loadOrderInfo(this.value)">
+                                    <option value="">بدون سفارش</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">کالا</label>
+                                <input type="hidden" id="itemProductId" />
+                                <select id="itemProductSelect" class="form-select" onchange="loadProductParams(this.value)">
+                                    <option value="">انتخاب کنید</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">مقدار ضایعات</label>
+                                <input type="number" id="itemQuantity" step="0.001" class="form-control" />
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">پرسنل</label>
+                                <select id="itemPersonnelSelect" class="form-select" onchange="addPersonnel(this)">
+                                    <option value="">انتخاب پرسنل</option>
+                                </select>
+                                <div id="selectedPersonnels" class="mt-2 d-flex flex-wrap gap-1"></div>
+                                <input type="hidden" id="itemPersonnelIds" value="[]" />
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div id="parametersContainer">
+                                <label class="form-label">پارامترها</label>
+                                <div id="parametersList"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">انصراف</button>
+                    <button type="button" class="btn btn-primary" onclick="saveItem()">ثبت و چاپ</button>
+                </div>
+            </div>
+        </div>
+    </div>
+<!-- Modal حذف -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">تایید حذف</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">آیا از حذف این رسید مطمئن هستید؟</div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">انصراف</button>
+                    <button type="button" class="btn btn-danger" id="confirmDelete">حذف</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts
+{
+    <script>
+        const searchInput = document.getElementById("searchInput");
+        const rows = document.querySelectorAll("#WasteReceiptTable tbody tr");
+
+        searchInput.addEventListener("keyup", function () {
+            const value = this.value.toLowerCase();
+
+            rows.forEach(row => {
+                const rowText = row.innerText.toLowerCase();
+
+                if (rowText.includes(value)) {
+                    row.style.display = "";
+                } else {
+                    row.style.display = "none";
+                }
+            });
+        });
+        // var deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+        // var deleteId = 0;
+        var modal;
+
+        $(document).ready(function () {
+            if (document.getElementById('itemModal')) {
+                modal = new bootstrap.Modal(document.getElementById('itemModal'));
+            }
+        });
+
+        function openCreateModal() {
+            selectedPersonnelList = [];
+            selectedParameters = {};
+            document.getElementById('itemQuantity').value = '';
+            document.getElementById('selectedPersonnels').innerHTML = '';
+            document.getElementById('parametersList').innerHTML = '';
+            document.getElementById('itemPersonnelIds').value = '[]';
+            loadOrders();
+            loadProducts();
+            loadPersonnels();
+            modal.show();
+        }
+        function loadOrders() {
+            $.get('/Order/GetAllJson', function (data) {
+                var sel = document.getElementById('itemOrderId');
+                sel.innerHTML = '<option value="">انتخاب کنید</option>';
+                data.forEach(function (o) {
+                    var opt = document.createElement('option');
+                    opt.value = o.id; opt.text = o.title;
+                    sel.appendChild(opt);
+                });
+            });
+        }
+
+        function loadPersonnels() {
+            $.get('/Personnel/GetAllJson', function (data) {
+                var sel = document.getElementById('itemPersonnelSelect');
+                sel.innerHTML = '<option value="">انتخاب پرسنل</option>';
+                data.forEach(function (p) {
+                    var opt = document.createElement('option');
+                    opt.value = p.id; opt.text = p.title;
+                    sel.appendChild(opt);
+                });
+            });
+        }
+
+        function addPersonnel(sel) {
+            var id = parseInt(sel.value);
+            var title = sel.options[sel.selectedIndex].text;
+            if (!id) return;
+            if (selectedPersonnelList.find(p => p.id == id)) return;
+
+            selectedPersonnelList.push({ id: id, title: title });
+            renderPersonnels();
+            sel.value = '';
+        }
+
+        function removePersonnel(id) {
+            selectedPersonnelList = selectedPersonnelList.filter(p => p.id != id);
+            renderPersonnels();
+        }
+
+        function renderPersonnels() {
+            var container = document.getElementById('selectedPersonnels');
+            container.innerHTML = '';
+            selectedPersonnelList.forEach(function (p) {
+                var span = document.createElement('span');
+                span.className = 'badge bg-primary d-flex align-items-center gap-1 p-2';
+                span.innerHTML = p.title + ' <span style="cursor:pointer" onclick="removePersonnel(' + p.id + ')">×</span>';
+                container.appendChild(span);
+            });
+            document.getElementById('itemPersonnelIds').value = JSON.stringify(selectedPersonnelList.map(p => p.id));
+        }
+
+        function loadOrderInfo(orderId) {
+            if (!orderId) return;
+            $.get('/WasteReceipt/GetProductByOrder?orderId=' + orderId, function (data) {
+                if (data) {
+                    document.getElementById('itemProductId').value = data.productId;
+                    document.getElementById('itemProductTitle').value = data.productTitle;
+                    document.getElementById('itemParameterId').value = data.parameterId;
+                    document.getElementById('itemParameterTitle').value = data.parameterTitle || '';
+                    loadValues(data.parameterId, data.parameterValueId);
+                }
+            });
+        }
+
+        function loadValues(parameterId, selectedId) {
+            var sel = document.getElementById('itemValueId');
+            sel.innerHTML = '<option value="">بدون مقدار</option>';
+            if (!parameterId) return;
+            $.get('/Parameter/GetValues?parameterId=' + parameterId, function (data) {
+                data.forEach(function (v) {
+                    var opt = document.createElement('option');
+                    opt.value = v.id; opt.text = v.title;
+                    if (selectedId && v.id == selectedId) opt.selected = true;
+                    sel.appendChild(opt);
+                });
+            });
+        }
+
+        function saveItem() {
+            var personnelIds = [];
+            document.querySelectorAll('#itemPersonnelIds option:checked').forEach(function (o) {
+                personnelIds.push(parseInt(o.value));
+            });
+            var data = {
+                orderId: parseInt(document.getElementById('itemOrderId').value),
+                productId: parseInt(document.getElementById('itemProductId').value),
+                productParameterId: parseInt(document.getElementById('itemParameterId').value),
+                parameterValueId: parseInt(document.getElementById('itemValueId').value) || null,
+                quantity: parseFloat(document.getElementById('itemQuantity').value),
+                personnelIds: personnelIds
+            };
+            $.ajax({ url: '/WasteReceipt/CreateAjax', type: 'POST', contentType: 'application/json', data: JSON.stringify(data),
+                success: function (result) {
+                    if (result.success) { modal.hide(); $('.ajax-link[href="/WasteReceipt/Index"]').click(); }
+                    else alert(result.message);
+                }
+            });
+        }
+
+        function deleteItem(id) {
+            Swal.fire({
+                title: 'آیا مطمئن هستید؟',
+                text: "این عملیات قابل بازگشت نیست!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'بله، حذف شود',
+                cancelButtonText: 'انصراف'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.post('/WasteReceipt/DeleteAjax', { id: id }, function (result) {
+                        if (result.success) {
+                            Swal.fire('حذف شد!', '', 'success').then(() => location.reload());
+                        } else {
+                            Swal.fire('امکان حذف وجود ندارد', result.message, 'error');
+                        }
+                    });
+                }
+            });
+        }
+
+
+        document.getElementById('confirmDelete').addEventListener('click', function () {
+            $.post('/WasteReceipt/DeleteAjax', { id: deleteId }, function (result) {
+                if (result.success) { deleteModal.hide(); $('.ajax-link[href="/WasteReceipt/Index"]').click(); }
+                else alert(result.message);
+            });
+        });
+    </script>
+}

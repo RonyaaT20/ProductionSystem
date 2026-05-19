@@ -1,0 +1,77 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+@model ProductionSystem.Domain.Entities.Product
+
+@{
+    ViewData["Title"] = "تعریف کالا";
+}
+
+@* <h4>تعریف کالای جدید</h4>
+
+<form asp-action="Create" method="post">
+    <div class="mb-3">
+        <label class="form-label">عنوان</label>
+        <input asp-for="Title" class="form-control" />
+        <span asp-validation-for="Title" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">کد کالا</label>
+        <input asp-for="Code" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">واحد</label>
+        <select asp-for="UnitId" class="form-select">
+            <option value="">انتخاب کنید</option>
+            @foreach (var unit in ViewBag.Units)
+            {
+                <option value="@unit.Id">@unit.Title</option>
+            }
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">پارامتر (اجباری)</label>
+        <select asp-for="ProductParameterId" class="form-select" id="parameter-select" onchange="loadValues(this.value)">
+            <option value="">انتخاب کنید</option>
+            @foreach (var parameter in ViewBag.Parameters)
+            {
+                <option value="@parameter.Id">@parameter.Title</option>
+            }
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">مقدار (اختیاری)</label>
+        <select asp-for="ParameterValueId" class="form-select" id="value-select">
+            <option value="">بدون مقدار</option>
+        </select>
+    </div>
+
+    <button type="submit" class="btn btn-primary">ذخیره</button>
+    <a asp-action="Index" class="btn btn-secondary">انصراف</a>
+</form>
+
+<script>
+    function loadValues(parameterId) {
+        var valueSelect = document.getElementById('value-select');
+        valueSelect.innerHTML = '<option value="">بدون مقدار</option>';
+
+        if (parameterId) {
+            fetch('/Parameter/GetValues?parameterId=' + parameterId)
+                .then(response => response.json())
+                .then(data => {
+                    data.forEach(function (item) {
+                        var option = document.createElement('option');
+                        option.value = item.id;
+                        option.text = item.title;
+                        valueSelect.appendChild(option);
+                    });
+                });
+        }
+    }
+</script> *@

@@ -1,0 +1,156 @@
+﻿@{
+    ViewData["Title"] = "ورود";
+    Layout = null;
+}
+<!doctype html>
+<html lang="en">
+<head>
+    <title>سیستم تولید</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    @* <link href="https://fonts.googleapis.com/css?family=Lato:300,400,700&display=swap" rel="stylesheet"> *@
+    <link rel="stylesheet" href="~/css/font-awesome/css/font-awesome.min.css">
+    <link href="~/css/style.css" rel="stylesheet" />
+    <style>
+        .alert-error {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            background: rgba(220, 38, 38, 0.15);
+            border: 1px solid rgba(220, 38, 38, 0.4);
+            border-radius: 8px;
+            padding: 12px 14px;
+            margin-bottom: 1rem;
+            color: #ff6b6b;
+            font-size: 14px;
+            direction: rtl;
+            animation: slideDown 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+            .alert-error.fade-out {
+                animation: fadeOut 0.5s ease forwards;
+            }
+
+        .progress-bar-err {
+            height: 3px;
+            background: rgba(220, 38, 38, 0.5);
+            border-radius: 2px;
+            margin-top: 8px;
+            animation: shrink 4s linear forwards;
+            transform-origin: right;
+        }
+
+        .alert-close-btn {
+            background: none;
+            border: none;
+            color: #ff6b6b;
+            cursor: pointer;
+            padding: 0;
+            font-size: 16px;
+            line-height: 1;
+            margin-right: auto;
+        }
+
+        @@keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @@keyframes fadeOut {
+            from {
+                opacity: 1;
+                transform: translateY(0);
+            }
+
+            to {
+                opacity: 0;
+                transform: translateY(-6px);
+            }
+        }
+
+        @@keyframes shrink {
+            from {
+                transform: scaleX(1);
+            }
+
+            to {
+                transform: scaleX(0);
+            }
+        }
+    </style>
+</head>
+<body class="img js-fullheight" style="background-color: rgb(0, 0, 39);">
+    <section class="ftco-section">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-md-6 col-lg-4">
+                    <div class="login-wrap p-0">
+                        <h3 class="mb-4 text-center">Have an account?</h3>
+                        <form class="signin-form" method="post" asp-action="Login" asp-controller="Account">
+
+                            @if (ViewBag.Error != null)
+                            {
+                                <div class="alert-error" id="errorBox">
+                                    <i class="fa fa-exclamation-circle" style="margin-top:2px; flex-shrink:0;"></i>
+                                    <div style="flex:1">
+                                        <span>@ViewBag.Error</span>
+                                        <div class="progress-bar-err"></div>
+                                    </div>
+                                    <button type="button" class="alert-close-btn" onclick="closeAlert()">
+                                        <i class="fa fa-times"></i>
+                                    </button>
+                                </div>
+                            }
+
+                            <div class="form-group">
+                                <input type="text" name="username" class="form-control" placeholder="Username" required>
+                            </div>
+                            <div class="form-group">
+                                <input id="password-field" type="password" name="password" class="form-control" placeholder="Password" required>
+                                <span toggle="#password-field" class="fa fa-fw fa-eye field-icon toggle-password"></span>
+                            </div>
+                            <div class="form-group">
+                                <button type="submit" class="form-control btn btn-primary submit px-3">Log In</button>
+                            </div>
+                            <div class="form-group d-md-flex">
+                                <div class="w-50">
+                                    <label class="checkbox-wrap checkbox-primary">
+                                        Remember Me
+                                        <input type="checkbox" checked>
+                                        <span class="checkmark"></span>
+                                    </label>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <script src="~/js/jquery.min.js"></script>
+    <script src="~/js/popper.js"></script>
+    <script src="~/js/bootstrap.min.js"></script>
+    <script src="~/js/main.js"></script>
+    <script>
+        (function () {
+            var box = document.getElementById('errorBox');
+            if (!box) return;
+
+            var timer = setTimeout(function () { closeAlert(); }, 4000);
+
+            window.closeAlert = function () {
+                box.classList.add('fade-out');
+                clearTimeout(timer);
+                setTimeout(function () { box.style.display = 'none'; }, 500);
+            };
+        })();
+    </script>
+</body>
+</html>

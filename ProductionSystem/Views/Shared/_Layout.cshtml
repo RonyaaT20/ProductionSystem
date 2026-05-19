@@ -1,0 +1,685 @@
+﻿@using Microsoft.AspNetCore.Http
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>سیستم تولید</title>
+    <link rel="shortcut icon" href="~/media/logos/favicon.ico" />
+    <link href="~/plugins/custom/fullcalendar/fullcalendar.bundle.css" rel="stylesheet" type="text/css" />
+    <link href="~/plugins/custom/datatables/datatables.bundle.css" rel="stylesheet" type="text/css" />
+    <link href="~/plugins/global/plugins.bundle.rtl.css" rel="stylesheet" type="text/css" />
+    <link href="~/css/style.bundle.rtl.css" rel="stylesheet" type="text/css" />
+    <link href="~/css/persian-datepicker.css" rel="stylesheet" type="text/css" />
+    <link href="~/css/persian-datepicker.min.css" rel="stylesheet" type="text/css" />
+    <style>
+        /* استایل برای منوی فعال در sidebar-submenu (سایدبار چپ) */
+        #sidebar-submenu .menu-link.active {
+            background-color: #1470b82e !important;
+            color: white !important;
+            border-radius: 8px;
+        }
+
+            #sidebar-submenu .menu-link.active .menu-bullet .bullet {
+                background-color: white !important;
+            }
+
+            #sidebar-submenu .menu-link.active .menu-title {
+                color: white !important;
+            }
+
+        /* استایل برای منوی اصلی aside (راست) */
+        .menu-item.active > .menu-link {
+            background-color: #1470b82e !important;
+            color: white !important;
+            border-radius: 8px;
+        }
+
+        .menu-item.active .menu-link .menu-title {
+            color: white !important;
+        }
+
+        .menu-item.active .menu-link .menu-bullet .bullet {
+            background-color: white !important;
+        }
+
+        .menu-item.active .menu-link .menu-icon i {
+            color: white !important;
+        }
+
+        /* استایل برای زیرمنوی باز شده */
+        .menu-sub-accordion.show {
+            display: block !important;
+        }
+
+        /* استایل برای لینک‌های active در منوی اصلی */
+        .menu-link.active {
+            background-color: #e8f0fe !important;
+            color: #1470b82e !important;
+            border-radius: 8px;
+        }
+
+        .ajax-link.active {
+            background-color: #1470b82e !important;
+            color: white !important;
+            border-radius: 8px;
+        }
+
+        /* استایل برای فیلدهای خطا */
+        .is-invalid {
+            border: 2px solid red !important;
+        }
+
+        .invalid-feedback {
+            color: red;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        .field-required::after {
+            content: " *";
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="d-flex flex-column flex-root app-root" id="kt_app_root">
+        <div class="app-page flex-column flex-column-fluid" id="kt_app_page">
+
+            <!--begin::Header-->
+            <div id="kt_app_header" class="app-header">
+                <div class="app-header-logo d-flex align-items-center ps-lg-10 gap-4 gap-lg-6">
+                    <button id="kt_app_aside_toggle" class="btn btn-icon bg-gray-300 bg-opacity-75 btn-color-gray-700 btn-active-color-primary rounded-1 w-30px h-30px ms-n3 ms-lg-0">
+                        <i class="ki-outline ki-burger-menu-6 fs-3"></i>
+                    </button>
+                    <a href="#">
+                    @* <img alt="Logo" src="~/media/Picture1.png" style=" width: 180px; display:inline-block;"> *@
+                    </a>
+                </div>
+                <div class="app-header-wrapper">
+                    <div class="app-container container-fluid">
+                        <div class="app-navbar flex-shrink-0">
+                            <!--begin::User menu-->
+                            <div class="app-navbar-item ms-1 ms-lg-3 me-2 me-lg-6" style="margin-right: 1200px !important" id="kt_header_user_menu_toggle">
+                                <div class="cursor-pointer symbol symbol-35px symbol-md-40px" data-kt-menu-trigger="{default: 'click', lg: 'hover'}" data-kt-menu-attach="parent" data-kt-menu-placement="bottom-end">
+                                    <img class="symbol symbol-circle symbol-35px symbol-md-40px" src="~/media/avatars/blank.png" alt="user">
+                                </div>
+                                <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-800 menu-state-bg menu-state-color fw-semibold py-4 fs-6 w-275px" data-kt-menu="true">
+                                    <div class="menu-item px-3">
+                                        <div class="menu-content d-flex align-items-center px-3">
+                                            <div class="symbol symbol-50px me-5">
+                                                <img alt="Logo" src="~/media/avatars/blank.png">
+                                            </div>
+                                            <div class="d-flex flex-column">
+                                                <div class="fw-bold d-flex align-items-center fs-5">
+                                                    @Context.Session.GetString("FullName")
+                                                    @* <span class="badge badge-light-success fw-bold fs-8 px-2 py-1 ms-2">مدیر</span> *@
+                                                </div>
+                                                <span class="fw-semibold text-muted fs-7">@Context.Session.GetString("Username")</span>
+                                            </div>
+                                        </div>
+                                    </div>
+ 
+                                    <div class="separator my-2"></div>
+                                    <div class="menu-item px-5" data-kt-menu-trigger="{default: 'click', lg: 'hover'}" data-kt-menu-placement="left-start" data-kt-menu-offset="-15px, 0">
+                                        <a href="#" class="menu-link px-5">
+                                            <span class="menu-title position-relative">
+                                                Mode
+                                                <span class="ms-5 position-absolute translate-middle-y top-50 end-0">
+                                                    <i class="ki-outline ki-night-day theme-light-show fs-2"></i>
+                                                    <i class="ki-outline ki-moon theme-dark-show fs-2"></i>
+                                                </span>
+                                            </span>
+                                        </a>
+                                        <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-title-gray-700 menu-icon-gray-500 menu-active-bg menu-state-color fw-semibold py-4 fs-base w-150px" data-kt-menu="true" data-kt-element="theme-mode-menu">
+                                            <div class="menu-item px-3 my-0">
+                                                <a href="#" class="menu-link px-3 py-2 active" data-kt-element="mode" data-kt-value="light">
+                                                    <span class="menu-icon" data-kt-element="icon"><i class="ki-outline ki-night-day fs-2"></i></span>
+                                                    <span class="menu-title">روشن</span>
+                                                </a>
+                                            </div>
+                                            <div class="menu-item px-3 my-0">
+                                                <a href="#" class="menu-link px-3 py-2" data-kt-element="mode" data-kt-value="dark">
+                                                    <span class="menu-icon" data-kt-element="icon"><i class="ki-outline ki-moon fs-2"></i></span>
+                                                    <span class="menu-title">تیره</span>
+                                                </a>
+                                            </div>
+                                            <div class="menu-item px-3 my-0">
+                                                <a href="#" class="menu-link px-3 py-2" data-kt-element="mode" data-kt-value="system">
+                                                    <span class="menu-icon" data-kt-element="icon"><i class="ki-outline ki-screen fs-2"></i></span>
+                                                    <span class="menu-title">سیستم</span>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="separator my-2"></div>
+                                    <div class="menu-item px-5" data-kt-menu-trigger="{default: 'click', lg: 'hover'}" data-kt-menu-placement="left-start" data-kt-menu-offset="-15px, 0">
+                                        <a href="#" class="menu-link px-5">
+                                            <span class="menu-title position-relative">
+                                                پروفایل من
+                                            </span>
+                                        </a>
+                                        <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-title-gray-700 menu-icon-gray-500 menu-active-bg menu-state-color fw-semibold py-4 fs-base w-150px" data-kt-menu="true" data-kt-element="theme-mode-menu">
+                                            <div class="menu-item px-3 my-0">
+                                                <a href="/Account/Profile" class="menu-link px-3 py-2 active" data-kt-element="mode" data-kt-value="light">
+                                                    <span class="menu-title">ویرایش رمز</span>
+                                                </a>
+                                            </div>
+                                        </div>
+                                        </div>
+
+
+                                    <div class="separator my-2"></div>
+                                    <div class="menu-item px-5">
+                                        <a href="/Account/Logout" class="menu-link px-5">خروج</a>
+                                    </div>
+                                </div>
+                            </div>
+                            <!--end::User menu-->
+                            <div class="app-navbar-item ms-1 ms-lg-3 me-n4 d-flex d-lg-none">
+                                <button id="kt_app_sidebar_mobile_toggle" class="btn btn-icon w-35px h-35px w-md-40px h-md-40px">
+                                    <i class="ki-outline ki-burger-menu-2 fs-2"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!--end::Header-->
+
+            <div class="app-wrapper d-flex" id="kt_app_wrapper">
+
+                <!--begin::Sidebar (چپ - داشبورد)-->
+                <div id="kt_app_sidebar" class="app-sidebar flex-column" style="width: 245px" data-kt-drawer="true" data-kt-drawer-name="app-sidebar" data-kt-drawer-activate="{default: true, lg: false}" data-kt-drawer-overlay="true" data-kt-drawer-width="auto" data-kt-drawer-direction="start" data-kt-drawer-toggle="#kt_app_sidebar_mobile_toggle">
+                    <div id="kt_app_sidebar_wrapper" class="app-sidebar-wrapper hover-scroll-y my-2" data-kt-scroll="true" data-kt-scroll-activate="true" data-kt-scroll-height="auto" data-kt-scroll-offset="5px">
+                        <div id="kt_app_sidebar_menu" class="menu menu-sub-indention menu-rounded menu-column fw-semibold fs-6 py-4 py-lg-6 px-2 px-lg-6" data-kt-menu="true">
+                            <div class="menu-item">
+                                <div class="menu-content">
+                                    <span class="menu-section fs-5 fw-bolder ps-1 py-1">خانه</span>
+                                </div>
+                            </div>
+                            <div class="menu-item">
+                                <a class="menu-link ajax-link" href="/Home/Index">
+                                    <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
+                                    <span class="menu-title">داشبورد</span>
+                                </a>
+                            </div>
+                            <div id="sidebar-submenu" style="display:none">
+                                <div class="menu-item mt-2">
+                                    <div class="menu-content">
+                                        <span class="menu-section fs-6 fw-bolder ps-1 py-1" id="sidebar-submenu-title"></span>
+                                    </div>
+                                </div>
+                                <div id="sidebar-submenu-items"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                <!--end::Sidebar-->
+                <!--begin::Main-->
+                <div class="app-main flex-column flex-row-fluid" id="kt_app_main">
+                    <div class="container">
+                        @* Breadcrumb *@
+                        @if (ViewData["Breadcrumb"] is List<(string Title, string Url)> breadcrumbs && breadcrumbs.Any())
+                        {
+                            <nav style="direction:rtl; display:flex; align-items:center; gap:6px; font-size:13px; margin: 12px 0 4px;">
+                                @for (int i = 0; i < breadcrumbs.Count; i++)
+                                {
+                                    if (i == breadcrumbs.Count - 1)
+                                    {
+                                        <span style="color:#aaa;">@breadcrumbs[i].Title</span>
+                                    }
+                                    else
+                                    {
+                                        <a href="@breadcrumbs[i].Url" style="color:#6c9bd1; text-decoration:none;">@breadcrumbs[i].Title</a>
+                                        <span style="color:#666;">›</span>
+                                    }
+                                }
+                            </nav>
+                        }
+                        <main role="main" class="pb-3" id="page-content">
+                            @RenderBody()
+                        </main>
+                    </div>
+                </div>
+                <!--end::Main-->
+                <!--begin::Aside (راست - منوی اصلی)-->
+                <div id="kt_app_aside" class="app-aside flex-column drawer drawer-start" data-kt-drawer="true" data-kt-drawer-name="app-aside" data-kt-drawer-activate="true" data-kt-drawer-overlay="true" data-kt-drawer-width="auto" data-kt-drawer-direction="start" data-kt-drawer-toggle="#kt_app_aside_toggle" style="width: 250px !important;">
+                    <div id="kt_app_aside_wrapper" class="app-aside-wrapper hover-scroll-y my-4" data-kt-scroll="true" data-kt-scroll-activate="true" data-kt-scroll-height="auto" data-kt-scroll-offset="5px">
+                        <div id="kt_app_aside_menu" class="menu menu-sub-indention menu-rounded menu-column fw-semibold fs-6 px-2" data-kt-menu="true">
+
+                            <div class="menu-item pt-5">
+                                <div class="menu-content">
+                                    <span class="menu-heading fw-bold text-uppercase fs-7">بخش های سیستم تولید</span>
+                                </div>
+                            </div>
+
+                            <!--begin::اطلاعات پایه-->
+                            @{
+                                var perms = Context.Session.GetString("Permissions") ?? "";
+                                bool hasUser = perms.Contains("User");
+                                bool hasRole = perms.Contains("Role");
+                                bool hasUnit = perms.Contains("Unit");
+                                bool hasPersonnel = perms.Contains("Personnel");
+                                bool hasCustomer = perms.Contains("Customer");
+                                bool hasParameter = perms.Contains("Parameter");
+                                bool hasProduct = perms.Contains("Product");
+                                bool hasOrder = perms.Contains("Order");
+                                bool hasProductionReceipt = perms.Contains("ProductionReceipt");
+                                bool hasWasteReceipt = perms.Contains("WasteReceipt");
+                                bool hasReport = perms.Contains("Report");
+                                bool hasAnyBase = hasUser || hasRole || hasUnit || hasPersonnel || hasCustomer || hasParameter || hasProduct;
+                                bool hasAnyProd = hasOrder || hasProductionReceipt || hasWasteReceipt || hasReport;
+                            }
+
+                            @if (hasAnyBase)
+                            {
+                                <div data-kt-menu-trigger="click" class="menu-item menu-accordion">
+                                    <span class="menu-link">
+                                        <span class="menu-icon"><i class="ki-outline ki-address-book fs-2"></i></span>
+                                        <span class="menu-title">اطلاعات پایه</span>
+                                        <span class="menu-arrow"></span>
+
+                                    </span>
+                                    <div class="menu-sub menu-sub-accordion">
+                                        @if (hasUser)
+                                        {
+                                            <div class="menu-item">
+                                                <a class="menu-link ajax-link" href="/User/Index" data-section="base">
+                                                    <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
+                                                    <span class="menu-title">کاربر</span>
+                                                </a>
+                                            </div>
+                                        }
+                                        @if (hasRole)
+                                        {
+                                            <div class="menu-item" >
+                                                <a class="menu-link ajax-link" href="/Role/Index" data-section="base">
+                                                    <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
+                                                    <span class="menu-title">سطح دسترسی</span>
+                                                </a>
+                                            </div>
+                                        }
+                                        @if (hasUnit)
+                                        {
+                                            <div class="menu-item" >
+                                                <a class="menu-link ajax-link" href="/Unit/Index" data-section="base">
+                                                    <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
+                                                    <span class="menu-title">واحد</span>
+                                                </a>
+                                            </div>
+                                        }
+                                        @if (hasPersonnel)
+                                        {
+                                            <div class="menu-item" >
+                                                <a class="menu-link ajax-link" href="/Personnel/Index" data-section="base">
+                                                    <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
+                                                    <span class="menu-title">پرسنل</span>
+                                                </a>
+                                            </div>
+                                        }
+                                        @if (hasCustomer)
+                                        {
+                                            <div class="menu-item" >
+                                                <a class="menu-link ajax-link" href="/Customer/Index" data-section="base">
+                                                    <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
+                                                    <span class="menu-title">مشتری</span>
+                                                </a>
+                                            </div>
+                                        }
+                                        @if (hasParameter)
+                                        {
+                                            <div class="menu-item" >
+                                                <a class="menu-link ajax-link" href="/Parameter/Index" data-section="base">
+                                                    <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
+                                                    <span class="menu-title">پارامتر</span>
+                                                </a>
+                                            </div>
+                                        }
+                                        @if (hasProduct)
+                                        {
+                                            <div class="menu-item" >
+                                                <a class="menu-link ajax-link" href="/Product/Index" data-section="base">
+                                                    <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
+                                                    <span class="menu-title">کالا</span>
+                                                </a>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                            <!--end::اطلاعات پایه-->
+                            <!--begin::تولید-->
+                            @if (hasAnyProd)
+                            {
+                                <div data-kt-menu-trigger="click" class="menu-item menu-accordion">
+                                    <span class="menu-link">
+                                        <span class="menu-icon"><i class="ki-outline ki-element-plus fs-2"></i></span>
+                                        <span class="menu-title">تولید</span>
+                                        <span class="menu-arrow"></span>
+                                    </span>
+                                    <div class="menu-sub menu-sub-accordion">
+                                        @if (hasOrder)
+                                        {
+                                            <div class="menu-item" >
+                                                <a class="menu-link ajax-link" href="/Order/Index" data-section="prod">
+                                                    <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
+                                                    <span class="menu-title">سفارش</span>
+                                                </a>
+                                            </div>
+                                        }
+                                        @if (hasProductionReceipt)
+                                        {
+                                            <div class="menu-item" >
+                                                <a class="menu-link ajax-link" href="/ProductionReceipt/Index" data-section="prod">
+                                                    <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
+                                                    <span class="menu-title">رسید تولید</span>
+                                                </a>
+                                            </div>
+                                        }
+                                        @* @if (hasWasteReceipt)
+                                        {
+                                            <div class="menu-item" >
+                                                <a class="menu-link ajax-link" href="/WasteReceipt/Index" data-section="prod">
+                                                    <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
+                                                    <span class="menu-title">رسید ضایعات</span>
+                                                </a>
+                                            </div>
+                                        } *@
+                                        @if (hasReport)
+                                        {
+                                            <div class="menu-item">
+                                                <a class="menu-link ajax-link" href="/Report/Production" data-section="prod">
+                                                    <span class="menu-bullet"><span class="bullet bullet-dot"></span></span>
+                                                    <span class="menu-title">گزارش تولید</span>
+                                                </a>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                            <!--end::تولید-->
+
+                        </div>
+                    </div>
+                </div>
+                <!--end::Aside-->
+
+            </div>
+        </div>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script>var hostUrl = "~/";</script>
+    <script src="~/plugins/global/plugins.bundle.js"></script>
+    <script src="~/js/scripts.bundle.js"></script>
+    <script src="~/plugins/custom/fullcalendar/fullcalendar.bundle.js"></script>
+    <script src="~/plugins/custom/datatables/datatables.bundle.js"></script>
+    <script src="~/js/widgets.bundle.js"></script>
+    <script src="~/js/custom/widgets.js"></script>
+    <script src="~/js/custom/apps/chat/chat.js"></script>
+    <script src="~/js/custom/utilities/modals/upgrade-plan.js"></script>
+    <script src="~/js/custom/utilities/modals/users-search.js"></script>
+    <script src="~/js/persian-date.min.js"></script>
+    <script src="~/js/persian-datepicker.min.js"></script>
+    <script>
+        var submenus = {
+            base: {
+                title: 'اطلاعات پایه',
+                items: [
+                    @if ((Context.Session.GetString("Permissions") ?? "").Contains("User"))
+                    {
+                            <text>{ title: 'کاربر', url: '/User/Index' },</text>
+                    }
+                    @if ((Context.Session.GetString("Permissions") ?? "").Contains("Role"))
+                    {
+                            <text>{ title: 'سطح دسترسی', url: '/Role/Index' },</text>
+                    }
+                    @if ((Context.Session.GetString("Permissions") ?? "").Contains("Unit"))
+                    {
+                            <text>{ title: 'واحد', url: '/Unit/Index' },</text>
+                    }
+                    @if ((Context.Session.GetString("Permissions") ?? "").Contains("Personnel"))
+                    {
+                            <text>{ title: 'پرسنل', url: '/Personnel/Index' },</text>
+                    }
+                    @if ((Context.Session.GetString("Permissions") ?? "").Contains("Customer"))
+                    {
+                            <text>{ title: 'مشتری', url: '/Customer/Index' },</text>
+                    }
+                    @if ((Context.Session.GetString("Permissions") ?? "").Contains("Parameter"))
+                    {
+                            <text>{ title: 'پارامتر', url: '/Parameter/Index' },</text>
+                    }
+                    @if ((Context.Session.GetString("Permissions") ?? "").Contains("Product"))
+                    {
+                            <text>{ title: 'کالا', url: '/Product/Index' },</text>
+                    }
+                ]
+            },
+            prod: {
+                title: 'تولید',
+                items: [
+                    @if ((Context.Session.GetString("Permissions") ?? "").Contains("Order"))
+                    {
+                            <text>{ title: 'سفارش', url: '/Order/Index' },</text>
+                    }
+                    @if ((Context.Session.GetString("Permissions") ?? "").Contains("ProductionReceipt"))
+                    {
+                            <text>{ title: 'رسید تولید', url: '/ProductionReceipt/Index' },</text>
+                    }
+                    @if ((Context.Session.GetString("Permissions") ?? "").Contains("Report"))
+                    {
+                            <text>{ title: 'گزارش تولید', url: '/Report/Production' },</text>
+                    }
+                ]
+            }
+        };
+
+        // تابع نمایش زیرمنو در سایدبار چپ
+        function showSubmenu(section) {
+            var data = submenus[section];
+            if (!data) return;
+
+            document.getElementById('sidebar-submenu-title').innerText = data.title;
+
+            var container = document.getElementById('sidebar-submenu-items');
+            container.innerHTML = '';
+
+            data.items.forEach(function (item) {
+                var div = document.createElement('div');
+                div.className = 'menu-item';
+                div.innerHTML = '<a class="menu-link ajax-link" href="' + item.url + '" data-section="' + section + '">' +
+                    '<span class="menu-bullet"><span class="bullet bullet-dot"></span></span>' +
+                    '<span class="menu-title">' + item.title + '</span>' +
+                    '</a>';
+                container.appendChild(div);
+            });
+
+            document.getElementById('sidebar-submenu').style.display = 'block';
+
+            // فعال کردن آیتم فعال در زیرمنو بعد از لود شدن
+            setTimeout(function() {
+                var currentUrl = window.location.pathname;
+                $('#sidebar-submenu-items .ajax-link').each(function() {
+                    var linkUrl = $(this).attr('href');
+                    if (linkUrl && currentUrl.includes(linkUrl)) {
+                        $(this).addClass('active');
+                        $(this).closest('.menu-item').addClass('active');
+                    }
+                });
+            }, 100);
+        }
+
+        // تابع برای فعال کردن منوی سایدبار
+        function setActiveSidebarMenu() {
+            var currentUrl = window.location.pathname;
+
+            // حذف کلاس active از همه آیتم‌های منو
+            $('.menu-item').removeClass('active');
+            $('.menu-link').removeClass('active');
+
+            // پیدا کردن لینکی که با URL جاری مطابقت دارد
+            $('.menu-link').each(function() {
+                var linkUrl = $(this).attr('href');
+                if (linkUrl && linkUrl !== '#' && currentUrl.includes(linkUrl)) {
+                    // فعال کردن آیتم منو
+                    $(this).addClass('active');
+                    $(this).closest('.menu-item').addClass('active');
+
+                    // باز کردن منوی والد (accordion)
+                    var parentAccordion = $(this).closest('.menu-sub-accordion');
+                    if (parentAccordion.length) {
+                        parentAccordion.addClass('show');
+                        parentAccordion.prev('.menu-link').addClass('active');
+                        parentAccordion.closest('.menu-item').addClass('active');
+                    }
+
+                    // ذخیره در localStorage
+                    var section = $(this).data('section');
+                    if (section) {
+                        localStorage.setItem('activeSection', section);
+                    }
+                }
+            });
+
+            // فعال کردن منوی سایدبار سمت چپ (sidebar-submenu)
+            $('.ajax-link').each(function() {
+                var linkUrl = $(this).attr('href');
+                if (linkUrl && linkUrl !== '#' && currentUrl.includes(linkUrl)) {
+                    $(this).addClass('active');
+                    $(this).closest('.menu-item').addClass('active');
+
+                    // باز کردن ساب‌منو
+                    var section = $(this).data('section');
+                    if (section) {
+                        showSubmenu(section);
+                        localStorage.setItem('activeSection', section);
+                    }
+                }
+            });
+
+            // فعال کردن آیتم فعال در sidebar-submenu
+            $('#sidebar-submenu-items .ajax-link').each(function() {
+                var linkUrl = $(this).attr('href');
+                if (linkUrl && currentUrl.includes(linkUrl)) {
+                    $(this).addClass('active');
+                    $(this).closest('.menu-item').addClass('active');
+                }
+            });
+        }
+
+        // تابع برای باز کردن منوی اصلی بر اساس بخش ذخیره شده
+        function openMainMenuBySection() {
+            var section = localStorage.getItem('activeSection');
+            if (section === 'base') {
+                $('[data-kt-menu-trigger="click"]:has(.ki-address-book)').addClass('show');
+                $('[data-kt-menu-trigger="click"]:has(.ki-address-book)').find('.menu-sub-accordion').addClass('show');
+            } else if (section === 'prod') {
+                $('[data-kt-menu-trigger="click"]:has(.ki-element-plus)').addClass('show');
+                $('[data-kt-menu-trigger="click"]:has(.ki-element-plus)').find('.menu-sub-accordion').addClass('show');
+            }
+        }
+
+        // ذخیره section داخل localStorage هنگام کلیک
+        $(document).on('click', '[data-section]', function() {
+            var section = $(this).data('section');
+            localStorage.setItem('activeSection', section);
+        });
+
+        // هنگام کلیک روی آیتم‌های منو
+        $(document).on('click', '.menu-link, .ajax-link', function() {
+            var section = $(this).data('section');
+            if (section) {
+                localStorage.setItem('activeSection', section);
+            }
+
+            setTimeout(function() {
+                setActiveSidebarMenu();
+            }, 50);
+        });
+
+        // مقداردهی اولیه تاریخ شمسی
+        function initDatePickers() {
+            $('.persian-date').each(function () {
+                if (!$(this).data('datepicker-initialized')) {
+                    $(this).persianDatepicker({
+                        format: 'YYYY/MM/DD',
+                        autoClose: true,
+                        initialValue: false
+                    });
+                    $(this).data('datepicker-initialized', true);
+                }
+            });
+        }
+
+        // توابع اعتبارسنجی عمومی
+        function validateForm(fields) {
+            var isValid = true;
+            fields.forEach(function(field) {
+                var el = document.getElementById(field.id);
+                var errorEl = document.getElementById(field.id + '_error');
+                if (!errorEl) {
+                    errorEl = document.createElement('div');
+                    errorEl.id = field.id + '_error';
+                    errorEl.className = 'text-danger small mt-1';
+                    el.parentNode.appendChild(errorEl);
+                }
+                if (!el.value || el.value.trim() === '' || el.value === '0') {
+                    errorEl.innerText = field.message || 'این فیلد اجباری است';
+                    el.classList.add('is-invalid');
+                    isValid = false;
+                } else {
+                    errorEl.innerText = '';
+                    el.classList.remove('is-invalid');
+                }
+            });
+            return isValid;
+        }
+
+        function validatePhone(id) {
+            var el = document.getElementById(id);
+            var errorEl = document.getElementById(id + '_error');
+            if (!errorEl) {
+                errorEl = document.createElement('div');
+                errorEl.id = id + '_error';
+                errorEl.className = 'text-danger small mt-1';
+                el.parentNode.appendChild(errorEl);
+            }
+            var phone = el.value;
+            if (!/^09[0-9]{9}$/.test(phone)) {
+                errorEl.innerText = 'شماره موبایل باید با 09 شروع شده و 11 رقم باشد';
+                el.classList.add('is-invalid');
+                return false;
+            }
+            errorEl.innerText = '';
+            el.classList.remove('is-invalid');
+            return true;
+        }
+
+        // بارگذاری اولیه صفحه
+        $(document).ready(function() {
+            var section = localStorage.getItem('activeSection');
+            if (section) {
+                showSubmenu(section);
+            }
+
+            setActiveSidebarMenu();
+            openMainMenuBySection();
+            initDatePickers();
+
+            // برای لینک‌هایی که با ajax لود می‌شوند
+            $(document).ajaxComplete(function() {
+                setActiveSidebarMenu();
+                initDatePickers();
+            });
+        });
+    </script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

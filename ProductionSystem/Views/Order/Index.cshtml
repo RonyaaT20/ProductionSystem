@@ -1,0 +1,208 @@
+﻿@model List<ProductionSystem.Domain.DTOs.OrderDto>
+
+@{
+    ViewData["Title"] = "سفارشات";
+    ViewData["Breadcrumb"] = new List<(string, string)>
+    {
+        ("خانه", "/Home/Index"),
+        ("تولید", "#"),
+        ("سفارش", "/Order/Index")
+    };
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4>لیست سفارشات</h4>
+    <input type="text" id="searchInput" placeholder="جستجو بر اساس عنوان ، کد ، مشتری یا کالا..." style="  width: 560px; padding: 12px; font-size: 16px; border-radius: 12px; border: 2px solid #1470b8; margin-bottom: 20px; outline: none; margin-left: 60px; text-align: center; color: #1470b8; margin-top:20px; background-color:transparent; height:45px;">
+    <button class="btn btn-primary" onclick="openCreateModal()">+ ثبت سفارش</button>
+</div>
+
+<table class="table table-bordered table-hover" id="OrderTable">
+    <thead>
+        <tr>
+            <th>ردیف</th>
+            <th>عنوان</th>
+            <th>کد</th>
+            <th>مشتری</th>
+            <th>کالا</th>
+            <th>تاریخ تحویل</th>
+            <th>عملیات</th>
+        </tr>
+    </thead>
+    <tbody>
+        @{
+            int row = 1;
+        }
+        @foreach (var o in Model)
+        {
+            <tr>
+                <td>@(row++)</td>
+                <td>@o.Title</td>
+                <td>@o.Code</td>
+                <td>@o.CustomerTitle</td>
+                <td>@o.ProductTitle</td>
+                <td>@o.DeliveryDate</td>
+                <td>
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-light" data-bs-toggle="dropdown">⋮</button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#" onclick="openEditModal(@o.Id)">ویرایش</a></li>
+                            <li><a class="dropdown-item text-danger" href="#" onclick="deleteItem(@o.Id)">حذف</a></li>
+                        </ul>
+                    </div>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<div class="modal fade" id="itemModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle">ثبت سفارش</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="itemId" value="0" />
+                <div class="mb-3"><label class="form-label">عنوان</label><input type="text" id="itemTitle" class="form-control" /></div>
+                <div class="mb-3"><label class="form-label">کد سفارش</label><input type="text" id="itemCode" class="form-control" /></div>
+                <div class="mb-3"><label class="form-label">مشتری</label><select id="itemCustomerId" class="form-select"></select></div>
+                <div class="mb-3"><label class="form-label">کالا</label><select id="itemProductId" class="form-select"></select></div>
+                <div class="mb-3">
+                    <label class="form-label">تاریخ تحویل</label>
+                    <input type="text" id="itemDeliveryDate" class="form-control persian-date" placeholder="انتخاب تاریخ" readonly />
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">انصراف</button>
+                <button type="button" class="btn btn-primary" onclick="saveItem()">ذخیره</button>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+@section Scripts
+{
+    <script>
+                const searchInput = document.getElementById("searchInput");
+        const rows = document.querySelectorAll("#OrderTable tbody tr");
+
+        searchInput.addEventListener("keyup", function () {
+            const value = this.value.toLowerCase();
+
+            rows.forEach(row => {
+                const rowText = row.innerText.toLowerCase();
+
+                if (rowText.includes(value)) {
+                    row.style.display = "";
+                } else {
+                    row.style.display = "none";
+                }
+            });
+        });
+
+        var modal = new bootstrap.Modal(document.getElementById('itemModal'));
+        var deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+        var deleteId = 0;
+
+        function loadDropdowns(selectedCustomerId, selectedProductId) {
+            $.get('/Customer/GetAllJson', function (data) {
+                var sel = document.getElementById('itemCustomerId');
+                sel.innerHTML = '<option value="">انتخاب کنید</option>';
+                data.forEach(function (c) {
+                    var opt = document.createElement('option');
+                    opt.value = c.id; opt.text = c.title;
+                    if (selectedCustomerId && c.id == selectedCustomerId) opt.selected = true;
+                    sel.appendChild(opt);
+                });
+            });
+            $.get('/Product/GetAllJson', function (data) {
+                var sel = document.getElementById('itemProductId');
+                sel.innerHTML = '<option value="">انتخاب کنید</option>';
+                data.forEach(function (p) {
+                    var opt = document.createElement('option');
+                    opt.value = p.id; opt.text = p.title;
+                    if (selectedProductId && p.id == selectedProductId) opt.selected = true;
+                    sel.appendChild(opt);
+                });
+            });
+        }
+
+        function openCreateModal() {
+            document.getElementById('modalTitle').innerText = 'ثبت سفارش جدید';
+            document.getElementById('itemId').value = 0;
+            document.getElementById('itemTitle').value = '';
+            document.getElementById('itemCode').value = '';
+            document.getElementById('itemDeliveryDate').value = '';
+            loadDropdowns(null, null);
+            modal.show();
+            setTimeout(function() { initDatePickers(); }, 300);
+        }
+
+        function openEditModal(id) {
+            $.get('/Order/GetById?id=' + id, function (data) {
+                document.getElementById('modalTitle').innerText = 'ویرایش سفارش';
+                document.getElementById('itemId').value = data.id;
+                document.getElementById('itemTitle').value = data.title;
+                document.getElementById('itemCode').value = data.code;
+                document.getElementById('itemDeliveryDate').value = data.deliveryDate.substring(0, 10);
+                loadDropdowns(data.customerId, data.productId);
+                modal.show();
+                setTimeout(function() { initDatePickers(); }, 300);
+            });
+        }
+
+        function saveItem() {
+             if (!validateForm([
+                 {id: 'itemTitle', message: 'عنوان اجباری است'},
+                 {id: 'itemCode', message: 'کد اجباری است'},
+                 {id: 'itemCustomerId', message: 'مشتری اجباری است'},
+                 {id: 'itemProductId', message: 'کالا اجباری است'},
+                 {id: 'itemDeliveryDate', message: 'تاریخ تحویل اجباری است'}
+             ])) return;
+            var id = parseInt(document.getElementById('itemId').value);
+            var data = {
+                id: id,
+                title: document.getElementById('itemTitle').value,
+                code: document.getElementById('itemCode').value,
+                customerId: parseInt(document.getElementById('itemCustomerId').value),
+                productId: parseInt(document.getElementById('itemProductId').value),
+                deliveryDate: document.getElementById('itemDeliveryDate').value
+            };
+            var url = id === 0 ? '/Order/CreateAjax' : '/Order/EditAjax';
+            $.ajax({ url: url, type: 'POST', contentType: 'application/json', data: JSON.stringify(data),
+                success: function (result) {
+                    if (result.success) {
+                        modal.hide();
+                        $('.ajax-link[href="/Order/Index"]').click();
+                        window.location.reload()
+                    }
+                    else alert(result.message);
+                }
+            });
+        }
+
+        function deleteItem(id) {
+            Swal.fire({
+                title: 'آیا مطمئن هستید؟',
+                text: "این عملیات قابل بازگشت نیست!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'بله، حذف شود',
+                cancelButtonText: 'انصراف'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.post('/Order/DeleteAjax', { id: id }, function (result) {
+                        if (result.success) {
+                            Swal.fire('حذف شد!', '', 'success').then(() => location.reload());
+                        } else {
+                            Swal.fire('امکان حذف وجود ندارد', result.message, 'error');
+                        }
+                    });
+                }
+            });
+        }    </script>
+}
