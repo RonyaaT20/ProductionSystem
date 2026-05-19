@@ -9,11 +9,7 @@ namespace ProductionSystem.Infrastructure.Data
 {
     public class UnitOfWork : IUnitOfWork
     {
-        private readonly ProductionSystemDbContext _context;
-
-
-
-
+        private readonly ProductionSystemDbContext _context;S
         public IUserRepository Users { get; private set; }
         public IRoleRepository Roles { get; private set; }
         public IUnitRepository Units { get; private set; }
