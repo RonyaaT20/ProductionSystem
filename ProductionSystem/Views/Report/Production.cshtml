@@ -70,7 +70,6 @@
 <div class="d-flex gap-2 mb-3">
     <button class="btn btn-outline-secondary" onclick="window.print()">🖨 چاپ</button>
     <button class="btn btn-outline-success" onclick="exportExcel()">📊 اکسل</button>
- @*   <button class="btn btn-outline-danger" onclick="exportPdf()">📄 PDF</button>*@
     <input type="text" id="searchInput" placeholder="جستجو بر اساس سفارش ، کالا ، کد کالا ، پارامتر یا مقدار..." style="  width: 988px; padding: 12px; font-size: 16px; border-radius: 12px; border: 2px solid #1470b8; margin-bottom: 0px; outline: none; margin-left: 0px; text-align: center; color: #1470b8; margin-top:0px; background-color:transparent; height:45px;">
 </div>
 
@@ -95,43 +94,38 @@
 @section Scripts
 {
     <script>
-                const searchInput = document.getElementById("searchInput");
+        const searchInput = document.getElementById("searchInput");
 
-        // تابع فیلتر - هر بار ردیف‌های جاری را می‌گیرد
         function applySearchFilter() {
-            const value = searchInput.value.toLowerCase();
-            const currentRows = document.querySelectorAll("#report-table tbody tr");
-
-            currentRows.forEach(row => {
+            const value = searchInput.value.toLowerCase().trim();
+            const rows = document.querySelectorAll("#report-table tbody tr");
+            rows.forEach(row => {
                 const rowText = row.innerText.toLowerCase();
                 row.style.display = rowText.includes(value) ? "" : "none";
             });
         }
 
-        // رویداد جستجو
         searchInput.addEventListener("keyup", applySearchFilter);
 
-        // بارگذاری فیلترها
+        // بارگذاری لیست کالا و پارامتر
         $.get('/Product/GetAllJson', function (data) {
-            var sel = document.getElementById('filterProduct');
-            data.forEach(function (p) {
-                var opt = document.createElement('option');
-                opt.value = p.id; opt.text = p.title;
+            const sel = document.getElementById('filterProduct');
+            data.forEach(p => {
+                const opt = new Option(p.title, p.id);
                 sel.appendChild(opt);
             });
         });
 
         $.get('/Parameter/GetAllJson', function (data) {
-            var sel = document.getElementById('filterParameter');
-            data.forEach(function (p) {
-                var opt = document.createElement('option');
-                opt.value = p.id; opt.text = p.title;
+            const sel = document.getElementById('filterParameter');
+            data.forEach(p => {
+                const opt = new Option(p.title, p.id);
                 sel.appendChild(opt);
             });
         });
 
         function loadReport() {
-            var params = {
+            const params = {
                 productId: document.getElementById('filterProduct').value,
                 parameterId: document.getElementById('filterParameter').value,
                 fromDate: document.getElementById('filterFrom').value,
@@ -139,31 +133,29 @@
             };
 
             $.get('/Report/GetData', params, function (data) {
-                var tbody = document.getElementById('report-body');
-                var noData = document.getElementById('noDataMsg');
+                const tbody = document.getElementById('report-body');
+                const noData = document.getElementById('noDataMsg');
+
                 tbody.innerHTML = '';
 
                 if (data.length === 0) {
                     noData.classList.remove('d-none');
-                    return;
+                } else {
+                    noData.classList.add('d-none');
+                    data.forEach((r, i) => {
+                        const row = `
+                            <tr>
+                                <td>${i + 1}</td>
+                                <td>${r.orderTitle || '-'}</td>
+                                <td>${r.productTitle || '-'}</td>
+                                <td>${r.productCode || '-'}</td>
+                                <td>${r.parameterTitle || '-'}${r.parameterValue ? ' : ' + r.parameterValue : ''}</td>
+                                <td>${r.quantity}</td>
+                                <td>${r.createdAt}</td>
+                            </tr>`;
+                        tbody.innerHTML += row;
+                    });
                 }
-
-                noData.classList.add('d-none');
-
-                data.forEach(function (r, i) {
-                    var row = '<tr>';
-                    row += '<td>' + (i + 1) + '</td>';
-                    row += '<td>' + (r.orderTitle || '-') + '</td>';
-                    row += '<td>' + (r.productTitle || '-') + '</td>';
-                    row += '<td>' + (r.productCode || '-') + '</td>';
-                    row += '<td>' + (r.parameterTitle || '-') + (r.parameterValue ? ' : ' + r.parameterValue : '') + '</td>';
-                    row += '<td>' + r.quantity + '</td>';
-                    row += '<td>' + r.createdAt + '</td>';
-                    row += '</tr>';
-                    tbody.innerHTML += row;
-                });
-
-                // 🔥 بعد از پر شدن جدول، فیلتر جستجو را دوباره اعمال کن
                 applySearchFilter();
             });
         }
@@ -175,111 +167,41 @@
             document.getElementById('filterTo').value = '';
             loadReport();
         }
-        //   const searchInput = document.getElementById("searchInput");
-        // const rows = document.querySelectorAll("#report-table tbody tr");
 
-        // searchInput.addEventListener("keyup", function () {
-        //     const value = this.value.toLowerCase();
-
-        //     rows.forEach(row => {
-        //         const rowText = row.innerText.toLowerCase();
-
-        //         if (rowText.includes(value)) {
-        //             row.style.display = "";
-        //         } else {
-        //             row.style.display = "none";
-        //         }
-        //     });
-        // });
-        // بارگذاری فیلترها
-        // $.get('/Product/GetAllJson', function (data) {
-        //     var sel = document.getElementById('filterProduct');
-        //     data.forEach(function (p) {
-        //         var opt = document.createElement('option');
-        //         opt.value = p.id; opt.text = p.title;
-        //         sel.appendChild(opt);
-        //     });
-        // });
-
-        // $.get('/Parameter/GetAllJson', function (data) {
-        //     var sel = document.getElementById('filterParameter');
-        //     data.forEach(function (p) {
-        //         var opt = document.createElement('option');
-        //         opt.value = p.id; opt.text = p.title;
-        //         sel.appendChild(opt);
-        //     });
-        // });
-
-        // بارگذاری پیشفرض همه رسیدها
-        loadReport();
-
-        // function loadReport() {
-        //     var params = {
-        //         productId: document.getElementById('filterProduct').value,
-        //         parameterId: document.getElementById('filterParameter').value,
-        //         fromDate: document.getElementById('filterFrom').value,
-        //         toDate: document.getElementById('filterTo').value
-        //     };
-
-        //     $.get('/Report/GetData', params, function (data) {
-        //         var tbody = document.getElementById('report-body');
-        //         var noData = document.getElementById('noDataMsg');
-        //         tbody.innerHTML = '';
-
-        //         if (data.length === 0) {
-        //             noData.classList.remove('d-none');
-        //             return;
-        //         }
-
-        //         noData.classList.add('d-none');
-
-        //         data.forEach(function (r, i) {
-        //             var row = '<tr>';
-        //             row += '<td>' + (i + 1) + '</td>';
-        //             row += '<td>' + (r.orderTitle || '-') + '</td>';
-        //             row += '<td>' + (r.productTitle || '-') + '</td>';
-        //             row += '<td>' + (r.productCode || '-') + '</td>';
-        //             row += '<td>' + (r.parameterTitle || '-') + (r.parameterValue ? ' : ' + r.parameterValue : '') + '</td>';
-        //             row += '<td>' + r.quantity + '</td>';
-        //             row += '<td>' + r.createdAt + '</td>';
-        //             row += '</tr>';
-        //             tbody.innerHTML += row;
-        //         });
-        //     });
-        // }
-
+        // تابع اکسل (اصلاح شده)
         function exportExcel() {
-            var productId = document.getElementById('filterProduct').value;
-            var parameterId = document.getElementById('filterParameter').value;
-            var fromDate = document.getElementById('filterFrom').value;
-            var toDate = document.getElementById('filterTo').value;
-            window.location.href = '/Report/ExportExcel?productId=' + productId + '&parameterId=' + parameterId + '&fromDate=' + fromDate + '&toDate=' + toDate;
+            const productId = document.getElementById('filterProduct').value || '';
+            const parameterId = document.getElementById('filterParameter').value || '';
+            const fromDate = document.getElementById('filterFrom').value || '';
+            const toDate = document.getElementById('filterTo').value || '';
+
+            let url = `/Report/ExportExcel?productId=${encodeURIComponent(productId)}&parameterId=${encodeURIComponent(parameterId)}`;
+
+            if (fromDate) url += `&fromDate=${encodeURIComponent(fromDate)}`;
+            if (toDate) url += `&toDate=${encodeURIComponent(toDate)}`;
+
+            console.log('Export Excel URL:', url); // برای دیباگ
+            window.location.href = url;
         }
 
-        function exportPdf() {
-            var productId = document.getElementById('filterProduct').value;
-            var parameterId = document.getElementById('filterParameter').value;
-            var fromDate = document.getElementById('filterFrom').value;
-            var toDate = document.getElementById('filterTo').value;
-            window.location.href = '/Report/ExportPdf?productId=' + productId + '&parameterId=' + parameterId + '&fromDate=' + fromDate + '&toDate=' + toDate;
-        }
+        // ====================== اجرای اولیه ======================
         $(document).ready(function () {
             $('#filterFrom').persianDatepicker({
                 format: 'YYYY/MM/DD',
                 autoClose: true
             });
+
             $('#filterTo').persianDatepicker({
                 format: 'YYYY/MM/DD',
                 autoClose: true
             });
-        });
 
-        // function clearFilter() {
-        //     document.getElementById('filterProduct').value = '';
-        //     document.getElementById('filterParameter').value = '';
-        //     document.getElementById('filterFrom').value = '';
-        //     document.getElementById('filterTo').value = '';
-        //     loadReport();
-        // }
+            // خالی کردن فیلدهای تاریخ
+            document.getElementById('filterFrom').value = '';
+            document.getElementById('filterTo').value = '';
+
+            // بارگذاری اولیه همه گزارش‌ها
+            loadReport();
+        });
     </script>
 }
