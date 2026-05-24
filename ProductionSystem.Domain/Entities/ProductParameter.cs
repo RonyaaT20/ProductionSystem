@@ -12,6 +12,5 @@ namespace ProductionSystem.Domain.Entities
         public Unit Unit { get; set; }
 
         public ICollection<ParameterValue> Values { get; set; }
-
     }
 }

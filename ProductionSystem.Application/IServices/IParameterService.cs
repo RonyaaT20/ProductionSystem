@@ -20,5 +20,7 @@ namespace ProductionSystem.Application.IServices
         Task<(bool Success, string Message)> DeleteValueAsync(int parameterId, string value);
         Task<(bool Success, string Message)> RestoreValueAsync(int parameterId, string value);
         Task<List<ParameterValueDto>> GetDeletedValuesAsync(int parameterId);
+        Task<bool> IsCodeUniqueAsync(string code, int id = 0);
+
     }
 }

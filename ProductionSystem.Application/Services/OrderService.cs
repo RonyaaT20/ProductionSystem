@@ -50,11 +50,23 @@ namespace ProductionSystem.Application.Services
                 DeliveryDate = o.DeliveryDate.ToShamsi()
             };
         }
+        public async Task<bool> IsCodeUniqueAsync(string code, int id = 0)
+        {
+            var allOrders = await GetAllAsync();
 
+            if (id == 0)
+                return !allOrders.Any(o => o.Code == code);
+            else
+                return !allOrders.Any(o => o.Code == code && o.Id != id);
+        }
         public async Task<bool> CreateAsync(CreateOrderDto dto)
         {
             try
             {
+                // بررسی تکراری نبودن کد
+                var isCodeUnique = await IsCodeUniqueAsync(dto.Code);
+                if (!isCodeUnique)
+                    return false;
                 var item = new Order
                 {
                     Title = dto.Title,
@@ -74,6 +86,10 @@ namespace ProductionSystem.Application.Services
         {
             try
             {
+                // بررسی تکراری نبودن کد به جز خود آیتم
+                var isCodeUnique = await IsCodeUniqueAsync(dto.Code, dto.Id);
+                if (!isCodeUnique)
+                    return false;
                 var existing = await _unitOfWork.Orders.GetByIdAsync(dto.Id);
                 if (existing == null) return false;
                 existing.Title = dto.Title;

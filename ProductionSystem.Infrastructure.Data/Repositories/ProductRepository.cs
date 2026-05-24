@@ -33,5 +33,15 @@ namespace ProductionSystem.Infrastructure.Data.Repositories
                 .ThenInclude(pp => pp.ParameterValue)
                 .FirstOrDefaultAsync(p => p.Id == id);
         }
+
+        public async Task<bool> IsCodeExistsAsync(string code)
+        {
+            return await _context.Products.AnyAsync(p => p.Code == code);
+        }
+
+        public async Task<bool> IsCodeExistsAsync(string code, int excludeId)
+        {
+            return await _context.Products.AnyAsync(p => p.Code == code && p.Id != excludeId);
+        }
     }
 }

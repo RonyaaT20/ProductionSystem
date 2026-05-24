@@ -105,8 +105,6 @@
 
 @section Scripts
 {
-
-
     <script>
         const searchInput = document.getElementById("searchInput");
         const rows = document.querySelectorAll("#PersonnelTable tbody tr");
@@ -124,11 +122,75 @@
                 }
             });
         });
+
         var modal = new bootstrap.Modal(document.getElementById('itemModal'));
-        // var deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
-        // let deleteId = 0;
+
+        // توابع کمکی برای اعتبارسنجی
+        function showError(elementId, message) {
+            const element = document.getElementById(elementId);
+            const existingError = $(element).next('.text-danger');
+            if (existingError.length) existingError.remove();
+
+            const errorSpan = $('<span class="text-danger" style="font-size:12px; margin-top:5px; display:block;">' + message + '</span>');
+            $(element).after(errorSpan);
+            element.classList.add('is-invalid');
+        }
+
+        function clearErrors() {
+            $('.text-danger').remove();
+            $('.is-invalid').removeClass('is-invalid');
+        }
+
+        function validateForm(fields) {
+            let isValid = true;
+            fields.forEach(field => {
+                const value = document.getElementById(field.id).value.trim();
+                if (!value) {
+                    showError(field.id, field.message);
+                    isValid = false;
+                }
+            });
+            return isValid;
+        }
+
+        function validatePhone(elementId) {
+            const phone = document.getElementById(elementId).value.trim();
+            if (!phone) return true;
+
+            const phoneRegex = /^09[0-9]{9}$/;
+            if (!phoneRegex.test(phone)) {
+                showError(elementId, 'شماره موبایل باید با 09 شروع و 11 رقم باشد');
+                return false;
+            }
+            return true;
+        }
+
+        // بررسی تکراری بودن کد
+        function checkDuplicateCode() {
+            const code = document.getElementById('itemCode').value.trim();
+            const id = document.getElementById('itemId').value;
+
+            $('#codeError').remove();
+            $('#itemCode').removeClass('is-invalid');
+
+            if (!code) return Promise.resolve(true);
+
+            return new Promise((resolve) => {
+                $.get('/Personnel/IsCodeUnique', { code: code, id: id }, function(isUnique) {
+                    if (!isUnique) {
+                        const errorSpan = $('<span id="codeError" class="text-danger" style="font-size:12px; margin-top:5px; display:block;"> این کد پرسنلی قبلاً ثبت شده است!</span>');
+                        $('#itemCode').after(errorSpan);
+                        $('#itemCode').addClass('is-invalid');
+                        resolve(false);
+                    } else {
+                        resolve(true);
+                    }
+                });
+            });
+        }
 
         function openCreateModal() {
+            clearErrors();
             document.getElementById('modalTitle').innerText = 'تعریف پرسنل جدید';
             document.getElementById('itemId').value = 0;
             document.getElementById('itemTitle').value = '';
@@ -138,6 +200,7 @@
         }
 
         function openEditModal(id) {
+            clearErrors();
             $.get('/Personnel/GetById?id=' + id, function (data) {
                 document.getElementById('modalTitle').innerText = 'ویرایش پرسنل';
                 document.getElementById('itemId').value = data.id;
@@ -148,12 +211,23 @@
             });
         }
 
-        function saveItem() {
-             if (!validateForm([
-                 {id: 'itemTitle', message: 'عنوان اجباری است'},
-                 {id: 'itemCode', message: 'کد اجباری است'}
-             ])) return;
-             if (!validatePhone('itemMobile')) return;
+        async function saveItem() {
+            clearErrors();
+
+            if (!validateForm([
+                {id: 'itemTitle', message: 'عنوان اجباری است'},
+                {id: 'itemCode', message: 'کد اجباری است'}
+            ])) return;
+
+            if (!validatePhone('itemMobile')) return;
+
+            // بررسی تکراری بودن کد
+            const isUnique = await checkDuplicateCode();
+            if (!isUnique) {
+                document.getElementById('itemCode').focus();
+                return;
+            }
+
             var id = parseInt(document.getElementById('itemId').value);
             var data = {
                 id: id,
@@ -164,12 +238,17 @@
             var url = id === 0 ? '/Personnel/CreateAjax' : '/Personnel/EditAjax';
             $.ajax({ url: url, type: 'POST', contentType: 'application/json', data: JSON.stringify(data),
                 success: function (result) {
-                    if (result.success) {             
+                    if (result.success) {
                         $("#itemModal").modal("hide");
-                         window.location.reload()
-                        // $('.ajax-link[href="/Personnel/Index"]').click();
+                        window.location.reload()
                     }
-                    else alert(result.message);
+                    else {
+                        if (result.message && result.message.includes('تکراری')) {
+                            showError('itemCode', 'کد پرسنلی تکراری است');
+                        } else {
+                            alert(result.message);
+                        }
+                    }
                 }
             });
         }
@@ -196,8 +275,30 @@
                 }
             });
         }
+
         $(document).ready(function () {
-                
-        })
+            // بررسی تکراری بودن کد هنگام خروج از فیلد
+            $('#itemCode').on('blur', function() {
+                if ($(this).val().trim() !== '') {
+                    checkDuplicateCode();
+                }
+            });
+
+            // پاک کردن خطا هنگام تایپ مجدد
+            $('#itemCode').on('input', function() {
+                $('#codeError').remove();
+                $(this).removeClass('is-invalid');
+            });
+
+            $('#itemTitle').on('input', function() {
+                $(this).next('.text-danger').remove();
+                $(this).removeClass('is-invalid');
+            });
+
+            $('#itemMobile').on('input', function() {
+                $(this).next('.text-danger').remove();
+                $(this).removeClass('is-invalid');
+            });
+        });
     </script>
 }

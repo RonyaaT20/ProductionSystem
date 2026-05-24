@@ -67,6 +67,10 @@ namespace ProductionSystem.Application.Services
         {
             try
             {
+                // بررسی تکراری نبودن کد
+                var isCodeUnique = await IsCodeUniqueAsync(dto.Code);
+                if (!isCodeUnique)
+                    return false;
                 var product = new Product
                 {
                     Title = dto.Title,
@@ -91,6 +95,10 @@ namespace ProductionSystem.Application.Services
         {
             try
             {
+                // بررسی تکراری نبودن کد به جز خود آیتم
+                var isCodeUnique = await IsCodeUniqueAsync(dto.Code, dto.Id);
+                if (!isCodeUnique)
+                    return false;
                 var existing = await _unitOfWork.Products.GetByIdAsync(dto.Id);
                 if (existing == null) return false;
                 existing.Title = dto.Title;
@@ -139,6 +147,16 @@ namespace ProductionSystem.Application.Services
             {
                 return ex.InnerException?.Message ?? ex.Message;
             }
+        }
+
+        public async Task<bool> IsCodeUniqueAsync(string code, int id = 0)
+        {
+            var allProducts = await GetAllAsync();
+
+            if (id == 0)
+                return !allProducts.Any(p => p.Code == code);
+            else
+                return !allProducts.Any(p => p.Code == code && p.Id != id);
         }
     }
 }

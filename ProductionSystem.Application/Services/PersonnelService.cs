@@ -87,5 +87,13 @@ namespace ProductionSystem.Application.Services
             await _unitOfWork.SaveChangesAsync();
             return new DeleteResult { Success = true };
         }
+
+        public async Task<bool> IsCodeUniqueAsync(string code, int id = 0)
+        {
+            if (id == 0)
+                return !await _unitOfWork.Personnels.IsCodeExistsAsync(code);
+            else
+                return !await _unitOfWork.Personnels.IsCodeExistsAsync(code, id);
+        }
     }
 }

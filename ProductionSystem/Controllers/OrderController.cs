@@ -57,5 +57,15 @@ namespace ProductionSystem.Controllers
             var result = await _orderService.DeleteAsync(id);
             return Json(new { success = result.Success, message = result.Message });
         }
+
+        [HttpGet]
+        public async Task<IActionResult> IsCodeUnique(string code, int id = 0)
+        {
+            var allItems = await _orderService.GetAllAsync();
+            bool isUnique = id == 0
+                ? !allItems.Any(o => o.Code == code)
+                : !allItems.Any(o => o.Code == code && o.Id != id);
+            return Json(isUnique);
+        }
     }
 }

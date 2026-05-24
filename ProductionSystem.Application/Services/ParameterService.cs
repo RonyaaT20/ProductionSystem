@@ -51,6 +51,11 @@ namespace ProductionSystem.Application.Services
         {
             try
             {
+                // بررسی تکراری نبودن کد
+                var isCodeExists = await _unitOfWork.ProductParameters.IsCodeExistsAsync(dto.Code);
+                if (isCodeExists)
+                    return false;
+
                 var param = new ProductParameter
                 {
                     Title = dto.Title,
@@ -64,13 +69,20 @@ namespace ProductionSystem.Application.Services
                 await _unitOfWork.SaveChangesAsync();
                 return true;
             }
-            catch { return false; }
+            catch
+            {
+                return false;
+            }
         }
 
         public async Task<bool> EditAsync(EditParameterDto dto)
         {
             try
             {
+                // بررسی تکراری نبودن کد به جز خود آیتم
+                var isCodeExists = await _unitOfWork.ProductParameters.IsCodeExistsAsync(dto.Code, dto.Id);
+                if (isCodeExists)
+                    return false;
                 var existing = await _unitOfWork.ProductParameters.GetByIdAsync(dto.Id);
                 if (existing == null) return false;
                 existing.Title = dto.Title;
@@ -80,8 +92,12 @@ namespace ProductionSystem.Application.Services
                 await _unitOfWork.SaveChangesAsync();
                 return true;
             }
-            catch { return false; }
+            catch
+            {
+                return false;
+            }
         }
+
         public async Task<DeleteResult> DeleteAsync(int id)
         {
             var dependency = await _unitOfWork.CheckDependencyAsync("Parameter", id);
@@ -94,11 +110,13 @@ namespace ProductionSystem.Application.Services
             await _unitOfWork.SaveChangesAsync();
             return new DeleteResult { Success = true };
         }
+
         public async Task<List<string>> GetUsedValuesAsync(int parameterId, List<string> values)
         {
             return await _unitOfWork.ParameterValues
                 .GetUsedValuesAsync(parameterId, values);
         }
+
         public async Task<(bool Success, string Message)> SaveValuesAsync(int parameterId, List<string> newValues)
         {
             try
@@ -140,7 +158,7 @@ namespace ProductionSystem.Application.Services
                     {
                         foreach (var val in valuesToAdd)
                         {
-                            parameter.Values.Add(val);   // به جای AddRange
+                            parameter.Values.Add(val); // به جای AddRange
                         }
                     }
                 }
@@ -326,6 +344,14 @@ namespace ProductionSystem.Application.Services
             {
                 return (true, "خطا در بررسی وابستگی‌ها");
             }
+        }
+
+        public async Task<bool> IsCodeUniqueAsync(string code, int id = 0)
+        {
+            if (id == 0)
+                return !await _unitOfWork.ProductParameters.IsCodeExistsAsync(code);
+            else
+                return !await _unitOfWork.ProductParameters.IsCodeExistsAsync(code, id);
         }
     }
 }

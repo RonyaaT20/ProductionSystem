@@ -85,7 +85,7 @@
 @section Scripts
 {
     <script>
-                const searchInput = document.getElementById("searchInput");
+        const searchInput = document.getElementById("searchInput");
         const rows = document.querySelectorAll("#OrderTable tbody tr");
 
         searchInput.addEventListener("keyup", function () {
@@ -106,6 +106,70 @@
         var deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
         var deleteId = 0;
 
+        // ========== توابع اعتبارسنجی ==========
+        function showError(elementId, message) {
+            const element = document.getElementById(elementId);
+            const existingError = $(element).next('.text-danger');
+            if (existingError.length) existingError.remove();
+
+            const errorSpan = $('<span class="text-danger" style="font-size:12px; margin-top:5px; display:block;">' + message + '</span>');
+            $(element).after(errorSpan);
+            element.classList.add('is-invalid');
+        }
+
+        function clearErrors() {
+            $('.text-danger').remove();
+            $('.is-invalid').removeClass('is-invalid');
+        }
+
+        function validateForm(fields) {
+            let isValid = true;
+
+            for (let field of fields) {
+                let element = document.getElementById(field.id);
+                let value = element ? element.value.trim() : '';
+
+                if (value === '' || value === '0') {
+                    showError(field.id, field.message);
+                    isValid = false;
+                } else {
+                    // پاک کردن خطا اگر فیلد پر شده
+                    element.classList.remove('is-invalid');
+                    const existingError = $(element).next('.text-danger');
+                    if (existingError.length) existingError.remove();
+                }
+            }
+
+            return isValid;
+        }
+
+        // ========== بررسی کد تکراری ==========
+        function checkDuplicateCode() {
+            const code = document.getElementById('itemCode').value.trim();
+            const id = document.getElementById('itemId').value;
+
+            $('#codeError').remove();
+            $('#itemCode').removeClass('is-invalid');
+
+            if (!code) return Promise.resolve(true);
+
+            return new Promise((resolve) => {
+                $.get('/Order/IsCodeUnique', { code: code, id: id }, function(isUnique) {
+                    if (!isUnique) {
+                        const errorSpan = $('<span id="codeError" class="text-danger" style="font-size:12px; margin-top:5px; display:block;"> این کد سفارش قبلاً ثبت شده است!</span>');
+                        $('#itemCode').after(errorSpan);
+                        $('#itemCode').addClass('is-invalid');
+                        resolve(false);
+                    } else {
+                        resolve(true);
+                    }
+                }).fail(function() {
+                    resolve(true); // در صورت خطای شبکه، اجازه ثبت بدهیم
+                });
+            });
+        }
+
+        // ========== توابع اصلی ==========
         function loadDropdowns(selectedCustomerId, selectedProductId) {
             $.get('/Customer/GetAllJson', function (data) {
                 var sel = document.getElementById('itemCustomerId');
@@ -130,6 +194,7 @@
         }
 
         function openCreateModal() {
+            clearErrors();
             document.getElementById('modalTitle').innerText = 'ثبت سفارش جدید';
             document.getElementById('itemId').value = 0;
             document.getElementById('itemTitle').value = '';
@@ -141,48 +206,78 @@
         }
 
         function openEditModal(id) {
+            clearErrors();
             $.get('/Order/GetById?id=' + id, function (data) {
                 document.getElementById('modalTitle').innerText = 'ویرایش سفارش';
                 document.getElementById('itemId').value = data.id;
                 document.getElementById('itemTitle').value = data.title;
                 document.getElementById('itemCode').value = data.code;
-                document.getElementById('itemDeliveryDate').value = data.deliveryDate.substring(0, 10);
+                document.getElementById('itemDeliveryDate').value = data.deliveryDate ? data.deliveryDate.substring(0, 10) : '';
                 loadDropdowns(data.customerId, data.productId);
                 modal.show();
                 setTimeout(function() { initDatePickers(); }, 300);
             });
         }
 
-        function saveItem() {
-             if (!validateForm([
-                 {id: 'itemTitle', message: 'عنوان اجباری است'},
-                 {id: 'itemCode', message: 'کد اجباری است'},
-                 {id: 'itemCustomerId', message: 'مشتری اجباری است'},
-                 {id: 'itemProductId', message: 'کالا اجباری است'},
-                 {id: 'itemDeliveryDate', message: 'تاریخ تحویل اجباری است'}
-             ])) return;
+        // ========== تابع saveItem اصلاح شده ==========
+        async function saveItem() {
+            clearErrors();
+
+            // اعتبارسنجی فیلدها
+            const fields = [
+                {id: 'itemTitle', message: 'عنوان اجباری است'},
+                {id: 'itemCode', message: 'کد اجباری است'},
+                {id: 'itemCustomerId', message: 'مشتری اجباری است'},
+                {id: 'itemProductId', message: 'کالا اجباری است'},
+                {id: 'itemDeliveryDate', message: 'تاریخ تحویل اجباری است'}
+            ];
+
+            if (!validateForm(fields)) return;
+
+            // بررسی کد تکراری
+            const isUnique = await checkDuplicateCode();
+            if (!isUnique) {
+                document.getElementById('itemCode').focus();
+                return;
+            }
+
             var id = parseInt(document.getElementById('itemId').value);
             var data = {
                 id: id,
-                title: document.getElementById('itemTitle').value,
-                code: document.getElementById('itemCode').value,
+                title: document.getElementById('itemTitle').value.trim(),
+                code: document.getElementById('itemCode').value.trim(),
                 customerId: parseInt(document.getElementById('itemCustomerId').value),
                 productId: parseInt(document.getElementById('itemProductId').value),
                 deliveryDate: document.getElementById('itemDeliveryDate').value
             };
+
             var url = id === 0 ? '/Order/CreateAjax' : '/Order/EditAjax';
-            $.ajax({ url: url, type: 'POST', contentType: 'application/json', data: JSON.stringify(data),
+
+            $.ajax({
+                url: url,
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(data),
                 success: function (result) {
                     if (result.success) {
                         modal.hide();
-                        $('.ajax-link[href="/Order/Index"]').click();
-                        window.location.reload()
+                        window.location.reload();
+                    } else {
+                        if (result.message && result.message.includes('تکراری')) {
+                            showError('itemCode', 'کد سفارش تکراری است');
+                        } else {
+                            Swal.fire('خطا', result.message || 'خطا در ذخیره سازی', 'error');
+                        }
                     }
-                    else alert(result.message);
+                },
+                error: function (xhr, status, error) {
+                    console.error('Error:', error);
+                    Swal.fire('خطا', 'خطا در ارتباط با سرور', 'error');
                 }
             });
         }
 
+        // ========== تابع حذف ==========
         function deleteItem(id) {
             Swal.fire({
                 title: 'آیا مطمئن هستید؟',
@@ -204,5 +299,37 @@
                     });
                 }
             });
-        }    </script>
+        }
+
+        // ========== رویدادهای بررسی لحظه‌ای ==========
+        $(document).ready(function() {
+            // بررسی کد هنگام خروج از فیلد
+            $('#itemCode').on('blur', function() {
+                if ($(this).val().trim() !== '') {
+                    checkDuplicateCode();
+                }
+            });
+
+            // پاک کردن خطا هنگام تایپ مجدد
+            $('#itemCode').on('input', function() {
+                $('#codeError').remove();
+                $(this).removeClass('is-invalid');
+            });
+
+            $('#itemTitle').on('input', function() {
+                $(this).next('.text-danger').remove();
+                $(this).removeClass('is-invalid');
+            });
+
+            $('#itemCustomerId').on('change', function() {
+                $(this).next('.text-danger').remove();
+                $(this).removeClass('is-invalid');
+            });
+
+            $('#itemProductId').on('change', function() {
+                $(this).next('.text-danger').remove();
+                $(this).removeClass('is-invalid');
+            });
+        });
+    </script>
 }

@@ -11,5 +11,7 @@ namespace ProductionSystem.Application.IServices
         Task<bool> CreateAsync(CreateOrderDto dto);
         Task<bool> EditAsync(EditOrderDto dto);
         Task<DeleteResult> DeleteAsync(int id);
+        Task<bool> IsCodeUniqueAsync(string code, int id = 0);
+
     }
 }

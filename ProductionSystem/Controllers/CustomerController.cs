@@ -73,5 +73,12 @@ namespace ProductionSystem.Controllers
             var result = await _customerService.DeleteAsync(id);
             return Json(new { success = result.Success, message = result.Message });
         }
+
+        [HttpGet]
+        public async Task<IActionResult> IsCodeUnique(string code, int id = 0)
+        {
+            var isUnique = await _customerService.IsCodeUniqueAsync(code, id);
+            return Json(isUnique);
+        }
     }
 }

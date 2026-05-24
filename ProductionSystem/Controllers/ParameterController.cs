@@ -242,6 +242,12 @@ namespace ProductionSystem.Controllers
                 return Json(new { success = false, message = ex.Message });
             }
         }
+        [HttpGet]
+        public async Task<IActionResult> IsCodeUnique(string code, int id = 0)
+        {
+            var isUnique = await _parameterService.IsCodeUniqueAsync(code, id);
+            return Json(isUnique);
+        }
 
         // کلاس DTO را داخل همان کنترلر یا در فایل جداگانه تعریف کنید
         public class UpdateValueDto

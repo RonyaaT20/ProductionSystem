@@ -359,56 +359,7 @@
         }
 
         // ========== تابع saveItem اصلاح شده با اعتبارسنجی ==========
-        function saveItem() {
-            var id = parseInt(document.getElementById('itemId').value);
-
-            // تعریف فیلدهای اجباری
-            var fields = [
-                {id: 'itemTitle', message: 'عنوان کالا اجباری است'},
-                {id: 'itemCode', message: 'کد کالا اجباری است'},
-                {id: 'itemUnitId', message: 'واحد کالا اجباری است'}
-            ];
-
-            // اضافه کردن event listenerها برای حذف خطا هنگام تایپ (یکبار کافیست)
-            if (window.validationEventsAdded !== true) {
-                addValidationEvents(fields);
-                window.validationEventsAdded = true;
-            }
-
-            // اعتبارسنجی فیلدهای اجباری
-            if (!validateForm(fields)) return;
-
-            var data = {
-                id: id,
-                title: document.getElementById('itemTitle').value,
-                code: document.getElementById('itemCode').value,
-                unitId: parseInt(document.getElementById('itemUnitId').value) || 0,
-                parameters: selectedParameters.map(p => ({
-                    parameterId: p.parameterId,
-                    valueId: p.valueId || null
-                }))
-            };
-
-            var url = id === 0 ? '/Product/CreateAjax' : '/Product/EditAjax';
-            $.ajax({
-                url: url,
-                type: 'POST',
-                contentType: 'application/json',
-                data: JSON.stringify(data),
-                success: function (result) {
-                    if (result.success) {
-                        modal.hide();
-                        location.reload();
-                    }
-                    else alert(result.message);
-                },
-                error: function (xhr, status, error) {
-                    alert('خطایی رخ داده است: ' + error);
-                }
-            });
-        }
-        // =====================================================
-
+     
         function deleteItem(id) {
             Swal.fire({
                 title: 'آیا مطمئن هستید؟',
@@ -430,5 +381,138 @@
                     });
                 }
             });
-        }    </script>
+        }
+                // ========== توابع جدید برای بررسی کد تکراری ==========
+        function showError(elementId, message) {
+            const element = document.getElementById(elementId);
+            const existingError = $(element).next('.text-danger');
+            if (existingError.length) existingError.remove();
+
+            const errorSpan = $('<span class="text-danger" style="font-size:12px; margin-top:5px; display:block;">' + message + '</span>');
+            $(element).after(errorSpan);
+            element.classList.add('is-invalid');
+        }
+
+        function clearErrors() {
+            $('.text-danger').remove();
+            $('.is-invalid').removeClass('is-invalid');
+        }
+
+        function checkDuplicateCode() {
+            const code = document.getElementById('itemCode').value.trim();
+            const id = document.getElementById('itemId').value;
+
+            $('#codeError').remove();
+            $('#itemCode').removeClass('is-invalid');
+
+            if (!code) return Promise.resolve(true);
+
+            return new Promise((resolve) => {
+                $.get('/Product/IsCodeUnique', { code: code, id: id }, function(isUnique) {
+                    if (!isUnique) {
+                        const errorSpan = $('<span id="codeError" class="text-danger" style="font-size:12px; margin-top:5px; display:block;"> این کد کالا قبلاً ثبت شده است!</span>');
+                        $('#itemCode').after(errorSpan);
+                        $('#itemCode').addClass('is-invalid');
+                        resolve(false);
+                    } else {
+                        resolve(true);
+                    }
+                });
+            });
+        }
+
+        // تغییر تابع saveItem به async
+        async function saveItem() {
+            clearErrors();
+
+            var id = parseInt(document.getElementById('itemId').value);
+            var title = document.getElementById('itemTitle').value.trim();
+            var code = document.getElementById('itemCode').value.trim();
+            var unitId = document.getElementById('itemUnitId').value;
+
+            // اعتبارسنجی فیلدهای اجباری
+            if (!title) {
+                showError('itemTitle', 'عنوان کالا اجباری است');
+                return;
+            }
+
+            if (!code) {
+                showError('itemCode', 'کد کالا اجباری است');
+                return;
+            }
+
+            if (!unitId || unitId === '') {
+                showError('itemUnitId', 'واحد کالا اجباری است');
+                return;
+            }
+
+            // بررسی تکراری بودن کد
+            const isUnique = await checkDuplicateCode();
+            if (!isUnique) {
+                document.getElementById('itemCode').focus();
+                return;
+            }
+
+        var data = {
+            id: id,
+            title: title,
+            code: code,
+            unitId: parseInt(unitId),
+            parameters: selectedParameters.map(p => ({
+                parameterId: p.parameterId,
+                valueId: p.valueId || null
+            }))
+        };
+
+            var url = id === 0 ? '/Product/CreateAjax' : '/Product/EditAjax';
+            $.ajax({
+                url: url,
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(data),
+                success: function (result) {
+                    if (result.success) {
+                        modal.hide();
+                        location.reload();
+                    } else {
+                        if (result.message && result.message.includes('تکراری')) {
+                            showError('itemCode', 'کد کالا تکراری است');
+                        } else {
+                            alert(result.message);
+                        }
+                    }
+                },
+                error: function (xhr, status, error) {
+                    alert('خطایی رخ داده است: ' + error);
+                }
+            });
+        }
+
+        // اضافه کردن رویدادهای بررسی لحظه‌ای در $(document).ready
+        $(document).ready(function() {
+            // بررسی کد هنگام خروج از فیلد
+            $('#itemCode').on('blur', function() {
+                if ($(this).val().trim() !== '') {
+                    checkDuplicateCode();
+                }
+            });
+
+            // پاک کردن خطا هنگام تایپ مجدد
+            $('#itemCode').on('input', function() {
+                $('#codeError').remove();
+                $(this).removeClass('is-invalid');
+            });
+
+            $('#itemTitle').on('input', function() {
+                $(this).next('.text-danger').remove();
+                $(this).removeClass('is-invalid');
+            });
+
+            $('#itemUnitId').on('change', function() {
+                $(this).next('.text-danger').remove();
+                $(this).removeClass('is-invalid');
+            });
+        });
+        
+    </script>
 }
