@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ProductionSystem.Application.IServices;
+using ProductionSystem.Application.Security;
 using ProductionSystem.Application.Services;
 using ProductionSystem.Domain.DTOs;
 using ProductionSystem.Domain.Entities;
@@ -24,6 +25,7 @@ namespace ProductionSystem.Controllers
             _parameterService = parameterService;
             _unitOfWork = unitOfWork;
         }
+        [PermissionChecker(RoleChecker.Parameter)]
 
         public async Task<IActionResult> Index()
         {
@@ -55,13 +57,14 @@ namespace ProductionSystem.Controllers
             var values = parameter.Values.Select(v => new { id = v.Id, title = v.Title });
             return Json(values);
         }
-
+        [PermissionChecker(RoleChecker.CreateParameter)]
         [HttpPost]
         public async Task<IActionResult> CreateAjax([FromBody] CreateParameterDto dto)
         {
             var result = await _parameterService.CreateAsync(dto);
             return Json(new { success = result, message = result ? "" : "خطا در ذخیره سازی" });
         }
+        [PermissionChecker(RoleChecker.EditParameter)]
 
         [HttpPost]
         public async Task<IActionResult> EditAjax([FromBody] EditParameterDto dto)
@@ -69,6 +72,7 @@ namespace ProductionSystem.Controllers
             var result = await _parameterService.EditAsync(dto);
             return Json(new { success = result, message = result ? "" : "خطا در ویرایش" });
         }
+        [PermissionChecker(RoleChecker.DeleteParameter)]
 
         [HttpPost]
         public async Task<IActionResult> DeleteAjax(int id)
@@ -148,6 +152,7 @@ namespace ProductionSystem.Controllers
                 return (false, "خطا در ذخیره مقادیر پارامتر.");
             }
         }
+        [PermissionChecker(RoleChecker.CreateParameterValue)]
 
         [HttpPost]
         public async Task<IActionResult> AddValue([FromBody] AddValueDto dto)
@@ -162,6 +167,7 @@ namespace ProductionSystem.Controllers
                 return Json(new { success = false, message = ex.Message });
             }
         }
+        [PermissionChecker(RoleChecker.DeleteParameterValue)]
 
         [HttpPost]
         public async Task<IActionResult> DeleteValue(DeleteValueDto dto)
@@ -210,6 +216,7 @@ namespace ProductionSystem.Controllers
             return Json(deletedValues);
         }
 
+        [PermissionChecker(RoleChecker.EditParameterValue)]
 
         [HttpPost]
         public async Task<IActionResult> UpdateValue([FromBody] UpdateValueDto dto)

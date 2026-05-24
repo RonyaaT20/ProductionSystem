@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using ProductionSystem.Application.IServices;
+using ProductionSystem.Application.Security;
 using ProductionSystem.Application.Services;
 using ProductionSystem.Domain.DTOs;
 using System.Linq;
@@ -15,6 +16,7 @@ namespace ProductionSystem.Controllers
         {
             _productService = productService;
         }
+        [PermissionChecker(RoleChecker.Product)]
 
         public async Task<IActionResult> Index()
         {
@@ -36,6 +38,7 @@ namespace ProductionSystem.Controllers
             var items = await _productService.GetAllAsync();
             return Json(items.Select(p => new { p.Id, p.Title }));
         }
+        [PermissionChecker(RoleChecker.CreateProduct)]
 
         [HttpPost]
         public async Task<IActionResult> CreateAjax([FromBody] CreateProductDto dto)
@@ -43,6 +46,7 @@ namespace ProductionSystem.Controllers
             var result = await _productService.CreateAsync(dto);
             return Json(new { success = result, message = result ? "" : "خطا در ذخیره سازی" });
         }
+        [PermissionChecker(RoleChecker.EditProduct)]
 
         [HttpPost]
         public async Task<IActionResult> EditAjax([FromBody] EditProductDto dto)
@@ -50,6 +54,7 @@ namespace ProductionSystem.Controllers
             var result = await _productService.EditAsync(dto);
             return Json(new { success = result, message = result ? "" : "خطا در ویرایش" });
         }
+        [PermissionChecker(RoleChecker.DeleteProduct)]
 
         [HttpPost]
         public async Task<IActionResult> DeleteAjax(int id)

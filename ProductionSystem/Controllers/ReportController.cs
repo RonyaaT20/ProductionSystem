@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using OfficeOpenXml;
 using ProductionSystem.Application.Helpers;
+using ProductionSystem.Application.Security;
+using ProductionSystem.Domain.DTOs;
 using ProductionSystem.Domain.IRepositories;
 using System;
 using System.IO;
@@ -17,6 +19,7 @@ namespace ProductionSystem.Controllers
         {
             _unitOfWork = unitOfWork;
         }
+        [PermissionChecker(RoleChecker.Report)]
 
         public IActionResult Production()
         {

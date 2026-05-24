@@ -58,6 +58,8 @@ namespace ProductionSystem.Controllers
             return Json(new List<string>());
         }
 
+        [PermissionChecker(RoleChecker.CreateCustomer)]
+
         [HttpPost]
         public async Task<IActionResult> CreateAjax([FromBody] CreateCustomerDto dto)
         {
@@ -67,7 +69,7 @@ namespace ProductionSystem.Controllers
             var result = await _customerService.CreateAsync(dto);
             return Json(new { success = result, message = result ? "" : "خطا در ذخیره سازی" });
         }
-
+        [PermissionChecker(RoleChecker.EditCustomer)]
         [HttpPost]
         public async Task<IActionResult> EditAjax([FromBody] EditCustomerDto dto)
         {
@@ -77,7 +79,7 @@ namespace ProductionSystem.Controllers
             var result = await _customerService.EditAsync(dto);
             return Json(new { success = result, message = result ? "" : "خطا در ویرایش" });
         }
-
+        [PermissionChecker(RoleChecker.DeleteCustomer)]
         [HttpPost]
         public async Task<IActionResult> DeleteAjax(int id)
         {

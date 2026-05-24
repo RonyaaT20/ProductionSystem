@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using ProductionSystem.Application.IServices;
+using ProductionSystem.Application.Security;
 using ProductionSystem.Application.Services;
 using ProductionSystem.Domain.DTOs;
 using System.Linq;
@@ -15,7 +16,7 @@ namespace ProductionSystem.Controllers
         {
             _orderService = orderService;
         }
-
+        [PermissionChecker(RoleChecker.Order)]
         public async Task<IActionResult> Index()
         {
             var items = await _orderService.GetAllAsync();
@@ -43,14 +44,14 @@ namespace ProductionSystem.Controllers
             var result = await _orderService.CreateAsync(dto);
             return Json(new { success = result, message = result ? "" : "خطا در ذخیره سازی" });
         }
-
+        [PermissionChecker(RoleChecker.EditOrder)]
         [HttpPost]
         public async Task<IActionResult> EditAjax([FromBody] EditOrderDto dto)
         {
             var result = await _orderService.EditAsync(dto);
             return Json(new { success = result, message = result ? "" : "خطا در ویرایش" });
         }
-
+        [PermissionChecker(RoleChecker.DeleteOrder)]
         [HttpPost]
         public async Task<IActionResult> DeleteAjax(int id)
         {

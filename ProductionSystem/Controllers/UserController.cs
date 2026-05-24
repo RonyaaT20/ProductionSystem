@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using ProductionSystem.Application.IServices;
+using ProductionSystem.Application.Security;
 using ProductionSystem.Application.Services;
 using ProductionSystem.Domain.DTOs;
 using System.Linq;
@@ -15,6 +16,7 @@ namespace ProductionSystem.Controllers
         {
             _userService = userService;
         }
+        [PermissionChecker(RoleChecker.User)]
 
         public async Task<IActionResult> Index()
         {
@@ -37,6 +39,7 @@ namespace ProductionSystem.Controllers
             return Json(roles.Select(r => new { r.Id, r.Title }));
         }
 
+        [PermissionChecker(RoleChecker.CreateUser)]
 
         [HttpPost]
         public async Task<IActionResult> CreateAjax([FromBody] CreateUserDto dto)
@@ -46,7 +49,8 @@ namespace ProductionSystem.Controllers
             var result = await _userService.CreateAsync(dto);
             return Json(new { success = result, message = result ? "" : "خطا در ذخیره سازی" });
         }
-    
+        [PermissionChecker(RoleChecker.EditUser)]
+
         [HttpPost]
         public async Task<IActionResult> EditAjax([FromBody] EditUserDto dto)
         {
@@ -56,6 +60,7 @@ namespace ProductionSystem.Controllers
             var result = await _userService.EditAsync(dto);
             return Json(new { success = result, message = result ? "" : "خطا در ویرایش" });
         }
+        [PermissionChecker(RoleChecker.DeleteUser)]
 
         [HttpPost]
         public async Task<IActionResult> DeleteAjax(int id)

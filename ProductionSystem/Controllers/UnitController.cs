@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using ProductionSystem.Application.IServices;
+using ProductionSystem.Application.Security;
 using ProductionSystem.Domain.DTOs;
 using System.Linq;
 using System.Threading.Tasks;
@@ -18,6 +19,7 @@ namespace ProductionSystem.Controllers
             _unitService = unitService;
             _unitOfWork = unitOfWork;
         }
+        [PermissionChecker(RoleChecker.Unit)]
 
         public async Task<IActionResult> Index()
         {
@@ -39,6 +41,7 @@ namespace ProductionSystem.Controllers
             var items = await _unitService.GetAllAsync();
             return Json(items.Select(u => new { u.Id, u.Title }));
         }
+        [PermissionChecker(RoleChecker.CreateUnit)]
 
         [HttpPost]
         public async Task<IActionResult> CreateAjax([FromBody] CreateUnitDto dto)
@@ -47,6 +50,7 @@ namespace ProductionSystem.Controllers
             var result = await _unitService.CreateAsync(dto, createdBy);
             return Json(new { success = result, message = result ? "" : "خطا در ذخیره سازی" });
         }
+        [PermissionChecker(RoleChecker.EditUnit)]
 
         [HttpPost]
         public async Task<IActionResult> EditAjax([FromBody] EditUnitDto dto)
@@ -54,6 +58,8 @@ namespace ProductionSystem.Controllers
             var result = await _unitService.EditAsync(dto);
             return Json(new { success = result, message = result ? "" : "خطا در ویرایش" });
         }
+        [PermissionChecker(RoleChecker.DeleteUnit)]
+
         [HttpPost]
         public async Task<IActionResult> DeleteAjax(int id)
         {
