@@ -1,4 +1,11 @@
-﻿@model List<ProductionSystem.Domain.DTOs.ParameterDto>
+﻿@using ProductionSystem.Application.Services
+@using ProductionSystem.Domain.DTOs
+@using ProductionSystem.Domain.Utilities
+@using ProductionSystem.Application.Security
+@using ProductionSystem.Application.IServices
+@inject IPermissionService PermissionService
+
+@model List<ProductionSystem.Domain.DTOs.ParameterDto>
 
 @{
     ViewData["Title"] = "پارامترها";
@@ -26,7 +33,10 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h4>لیست پارامترها</h4>
     <input type="text" id="searchInput" placeholder="جستجو بر اساس عنوان ، کد ، واحد یا مقادیر..." style="  width: 560px; padding: 12px; font-size: 16px; border-radius: 12px; border: 2px solid #1470b8; margin-bottom: 20px; outline: none; margin-left: 60px; text-align: center; color: #1470b8; margin-top:20px; background-color:transparent; height:45px;">
-    <button class="btn btn-primary" onclick="openCreateModal()">+ تعریف پارامتر</button>
+    @if (PermissionService.CheckPermission(RoleChecker.CreateParameter.ToValue(), User.GetUserId()))
+    {
+        <button class="btn btn-primary" onclick="openCreateModal()">+ تعریف پارامتر</button>
+    }
 </div>
 
 <table class="table table-bordered table-hover" id="ParameterTable">
@@ -56,9 +66,20 @@
                     <div class="dropdown">
                         <button class="btn btn-sm btn-light" data-bs-toggle="dropdown">⋮</button>
                         <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="#" onclick="openValuesModal(@p.Id, '@p.Title')">مقادیر</a></li>
-                            <li><a class="dropdown-item" href="#" onclick="openEditModal(@p.Id)">ویرایش</a></li>
-                            <li><a class="dropdown-item text-danger" href="#" onclick="deleteItem(@p.Id)">حذف</a></li>
+                            @if (PermissionService.CheckPermission(RoleChecker.ParameterValue.ToValue(), User.GetUserId()))
+                            {
+                                <li><a class="dropdown-item" href="#" onclick="openValuesModal(@p.Id, '@p.Title')">مقادیر</a></li>
+
+                            }
+                            @if (PermissionService.CheckPermission(RoleChecker.EditParameter.ToValue(), User.GetUserId()))
+                            {
+                                <li><a class="dropdown-item" href="#" onclick="openEditModal(@p.Id)">ویرایش</a></li>
+                            }
+                            @if (PermissionService.CheckPermission(RoleChecker.DeleteParameter.ToValue(), User.GetUserId()))
+                            {
+                                <li><a class="dropdown-item text-danger" href="#" onclick="deleteItem(@p.Id)">حذف</a></li>
+
+                            }
                         </ul>
                     </div>
                 </td>
@@ -109,16 +130,20 @@
             </div>
             <div class="modal-body">
                 <input type="hidden" id="valuesParameterId" />
+                @if (PermissionService.CheckPermission(RoleChecker.CreateParameterValue.ToValue(), User.GetUserId()))
+                { 
+                    <!-- افزودن مقدار جدید -->
+                    <div class="row mb-3">
+                        <div class="col-md-8">
+                            <input type="text" id="newValueInput" class="form-control" placeholder="مقدار جدید را وارد کنید..." />
+                        </div>
+                        <div class="col-md-4">
+                            <button class="btn btn-primary w-100" onclick="addValue()">+ افزودن</button>
+                        </div>
+                    </div>
+                }
 
-                <!-- افزودن مقدار جدید -->
-                <div class="row mb-3">
-                    <div class="col-md-8">
-                        <input type="text" id="newValueInput" class="form-control" placeholder="مقدار جدید را وارد کنید..." />
-                    </div>
-                    <div class="col-md-4">
-                        <button class="btn btn-primary w-100" onclick="addValue()">+ افزودن</button>
-                    </div>
-                </div>
+
 
                 <!-- جدول مقادیر -->
                 <table class="table table-bordered table-hover" id="valuesTable">
@@ -330,18 +355,26 @@
                     </td>
                     <td>
                         <div class="btn-group btn-group-sm" role="group">
-                            <button class="btn btn-outline-primary" onclick="editValue(${i})" id="editBtn-${i}">
+                            @if (PermissionService.CheckPermission(RoleChecker.EditParameterValue.ToValue(), User.GetUserId()))
+                            {
+                                <button class="btn btn-outline-primary" onclick="editValue(${i})" id="editBtn-${i}">
                                 ویرایش
                             </button>
-                            <button class="btn btn-outline-success" onclick="saveValue(${i})" id="saveBtn-${i}" style="display:none;">
+                                <button class="btn btn-outline-success" onclick="saveValue(${i})" id="saveBtn-${i}" style="display:none;">
                                 ذخیره
                             </button>
-                            <button class="btn btn-outline-danger" onclick="deleteValue(${i})">
+                            }
+
+                            @if (PermissionService.CheckPermission(RoleChecker.DeleteParameterValue.ToValue(), User.GetUserId()))
+                            {
+                                <button class="btn btn-outline-danger" onclick="deleteValue(${i})">
                                 حذف
                             </button>
-                            <button class="btn btn-outline-secondary" onclick="cancelEdit(${i})" id="cancelBtn-${i}" style="display:none;">
+                                <button class="btn btn-outline-secondary" onclick="cancelEdit(${i})" id="cancelBtn-${i}" style="display:none;">
                                 انصراف
                             </button>
+                            }
+
                         </div>
                     </td>
                 `;

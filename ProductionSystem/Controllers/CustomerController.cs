@@ -5,18 +5,23 @@ using ProductionSystem.Domain.DTOs;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using ProductionSystem.Application.Security;
+using ProductionSystem.Domain.Utilities;
 
 namespace ProductionSystem.Controllers
 {
     public class CustomerController : Controller
     {
         private readonly ICustomerService _customerService;
+        private readonly IPermissionService _permissionService;
 
-        public CustomerController(ICustomerService customerService)
+        public CustomerController(ICustomerService customerService, IPermissionService permissionService)
         {
             _customerService = customerService;
+            _permissionService = permissionService;
         }
 
+        [PermissionChecker(RoleChecker.Customer)]
         public async Task<IActionResult> Index()
         {
             var items = await _customerService.GetAllAsync();
@@ -56,6 +61,9 @@ namespace ProductionSystem.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateAjax([FromBody] CreateCustomerDto dto)
         {
+            if (!_permissionService.CheckPermission(RoleChecker.CreateCustomer.ToValue(), User.GetUserId()))
+                return Json(new { success = false, message = "شما به این بخش دسترسی ندارید " });
+
             var result = await _customerService.CreateAsync(dto);
             return Json(new { success = result, message = result ? "" : "خطا در ذخیره سازی" });
         }
@@ -63,6 +71,9 @@ namespace ProductionSystem.Controllers
         [HttpPost]
         public async Task<IActionResult> EditAjax([FromBody] EditCustomerDto dto)
         {
+            if (!_permissionService.CheckPermission(RoleChecker.EditCustomer.ToValue(), User.GetUserId()))
+                return Json(new { success = false, message = "شما به این بخش دسترسی ندارید " });
+
             var result = await _customerService.EditAsync(dto);
             return Json(new { success = result, message = result ? "" : "خطا در ویرایش" });
         }
@@ -70,6 +81,9 @@ namespace ProductionSystem.Controllers
         [HttpPost]
         public async Task<IActionResult> DeleteAjax(int id)
         {
+            if (!_permissionService.CheckPermission(RoleChecker.DeleteCustomer.ToValue(), User.GetUserId()))
+                return Json(new { success = false, message = "شما به این بخش دسترسی ندارید " });
+
             var result = await _customerService.DeleteAsync(id);
             return Json(new { success = result.Success, message = result.Message });
         }

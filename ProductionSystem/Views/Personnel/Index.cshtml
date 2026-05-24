@@ -1,5 +1,9 @@
-﻿@model List<ProductionSystem.Domain.DTOs.PersonnelDto>
-
+﻿@using ProductionSystem.Application.IServices
+@using ProductionSystem.Application.Security
+@using ProductionSystem.Domain.DTOs
+@using ProductionSystem.Domain.Utilities
+@model List<ProductionSystem.Domain.DTOs.PersonnelDto>
+@inject IPermissionService PermissionService
 @{
     ViewData["Title"] = "پرسنل";
     ViewData["Breadcrumb"] = new List<(string, string)>
@@ -13,7 +17,12 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h4>لیست پرسنل</h4>
     <input type="text" id="searchInput" placeholder="جستجو بر اساس عنوان ، کد ،یا شماره موبایل..." style="  width: 560px; padding: 12px; font-size: 16px; border-radius: 12px; border: 2px solid #1470b8; margin-bottom: 20px; outline: none; margin-left: 60px; text-align: center; color: #1470b8; margin-top:20px; background-color:transparent; height:45px;">
-    <button class="btn btn-primary" onclick="openCreateModal()">+ تعریف پرسنل</button>
+    @if (PermissionService.CheckPermission(RoleChecker.CreatePersonnel.ToValue(), User.GetUserId()))
+    {
+        <button class="btn btn-primary" onclick="openCreateModal()">+ تعریف پرسنل</button>
+
+    }
+
 </div>
 
 <table class="table table-bordered table-hover" id="PersonnelTable">
@@ -41,8 +50,15 @@
                 <div class="dropdown">
                     <button class="btn btn-sm btn-light" data-bs-toggle="dropdown">⋮</button>
                     <ul class="dropdown-menu">
-                        <li><button class="dropdown-item" onclick="openEditModal(@p.Id)">ویرایش</button></li>
-                        <li><button class="dropdown-item text-danger" onclick="deleteItem(@p.Id)">حذف</button></li>
+                        @if (PermissionService.CheckPermission(RoleChecker.EditPersonnel.ToValue(), User.GetUserId()))
+                        {
+                            <li><a class="dropdown-item" href="#" onclick="openEditModal(@p.Id)">ویرایش</a></li>
+                        }
+                        @if (PermissionService.CheckPermission(RoleChecker.DeletePersonnel.ToValue(), User.GetUserId()))
+                        {
+                            <li><a class="dropdown-item text-danger" href="#" onclick="deleteItem(@p.Id)">حذف</a></li>
+
+                        }
                     </ul>
                 </div>
             </td>

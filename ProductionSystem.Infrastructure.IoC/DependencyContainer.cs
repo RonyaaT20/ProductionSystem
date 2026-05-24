@@ -6,6 +6,7 @@ using ProductionSystem.Application.Services;
 using ProductionSystem.Domain.IRepositories;
 using ProductionSystem.Infrastructure.Data;
 using ProductionSystem.Infrastructure.Data.Context;
+using ProductionSystem.Infrastructure.Data.Repositories;
 
 namespace ProductionSystem.Infrastructure.IoC
 {
@@ -34,6 +35,9 @@ namespace ProductionSystem.Infrastructure.IoC
             services.AddScoped<IOrderService, OrderService>();
             services.AddScoped<IProductionReceiptService, ProductionReceiptService>();
             services.AddScoped<IWasteReceiptService, WasteReceiptService>();
+            services.AddScoped<IPermissionService, PermissionService>();
+
+            services.AddScoped<IPermissionRepository, PermissionRepository>();
 
             return services;
         }

@@ -1,4 +1,9 @@
-﻿@model List<ProductionSystem.Domain.DTOs.RoleDto>
+﻿@using ProductionSystem.Application.IServices
+@using ProductionSystem.Application.Security
+@using ProductionSystem.Domain.DTOs
+@using ProductionSystem.Domain.Utilities
+@model List<ProductionSystem.Domain.DTOs.RoleDto>
+@inject IPermissionService PermissionService
 
 @{
     ViewData["Title"] = "سطح دسترسی";
@@ -13,7 +18,12 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h4>لیست سطح دسترسی</h4>
     <input type="text" id="searchInput" placeholder="جستجو بر اساس عنوان ، یا تاریخ ایجاد..." style="  width: 560px; padding: 12px; font-size: 16px; border-radius: 12px; border: 2px solid #1470b8; margin-bottom: 20px; outline: none; margin-left: 60px; text-align: center; color: #1470b8; margin-top:20px; background-color:transparent; height:45px;">
-    <button class="btn btn-primary" onclick="openCreateModal()">+ تعریف نقش</button>
+    @if (PermissionService.CheckPermission(RoleChecker.CreateRole.ToValue(), User.GetUserId()))
+    {
+        <button class="btn btn-primary" onclick="openCreateModal()">+ تعریف نقش</button>
+
+    }
+
 </div>
 
 <table class="table table-bordered table-hover" id="RoleTable">
@@ -39,8 +49,15 @@
                 <div class="dropdown">
                     <button class="btn btn-sm btn-light" data-bs-toggle="dropdown">⋮</button>
                     <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="#" onclick="openEditModal(@r.Id)">ویرایش</a></li>
-                        <li><a class="dropdown-item text-danger" href="#" onclick="deleteItem(@r.Id)">حذف</a></li>
+                        @if (PermissionService.CheckPermission(RoleChecker.EditRole.ToValue(), User.GetUserId()))
+                        {
+                            <li><a class="dropdown-item" href="#" onclick="openEditModal(@r.Id)">ویرایش</a></li>
+                        }
+                        @if (PermissionService.CheckPermission(RoleChecker.DeleteRole.ToValue(), User.GetUserId()))
+                        {
+                            <li><a class="dropdown-item text-danger" href="#" onclick="deleteItem(@r.Id)">حذف</a></li>
+
+                        }
                     </ul>
                 </div>
             </td>
@@ -70,68 +87,320 @@
                         </div>
                     </div>
                     <hr />
-                    @foreach (var perm in new[] {
-                                        ("User","کاربر"), ("Role","سطح دسترسی"), ("Unit","واحد"),
-                                        ("Personnel","پرسنل"), ("Customer","مشتری"),
-                                        ("Parameter","پارامتر"), ("Product","کالا"),
-                                        ("Order","سفارش"), ("ProductionReceipt","رسید تولید"),
-                                        ("WasteReceipt","رسید ضایعات"), ("Report","گزارش تولید")
-                                        })
-                    {
-                        <div class="mb-2 border rounded p-2">
-                            <div class="d-flex align-items-center gap-2">
-                                <input class="form-check-input perm-check" type="checkbox"
-                                       value="@perm.Item1" id="perm_@perm.Item1"
-                                       onchange="onMainPermChange('@perm.Item1', this)">
-                                <label class="form-check-label fw-bold" for="perm_@perm.Item1">@perm.Item2</label>
-                                <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1 ms-auto"
-                                        onclick="toggleCrud('@perm.Item1', this)">
-                                    +
-                                </button>
+
+                    @* User *@
+                    <div class="mb-2 border rounded p-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <input class="form-check-input perm-check" type="checkbox"
+                                   value="@RoleChecker.User.ToValue()" id="perm_User"
+                                   onchange="onMainPermChange('User', this)">
+                            <label class="form-check-label fw-bold" for="perm_User">کاربر</label>
+                            <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1 ms-auto"
+                                    onclick="toggleCrud('User', this)">
+                                +
+                            </button>
+                        </div>
+                        <div id="crud_User" class="ms-4 mt-2" style="display:none">
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input crud-check" type="checkbox"
+                                       value="@RoleChecker.CreateUser.ToValue()" id="crud_User_c" data-parent="User">
+                                <label class="form-check-label" for="crud_User_c">افزودن</label>
                             </div>
-                            <div id="crud_@perm.Item1" class="ms-4 mt-2" style="display:none">
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input crud-check" type="checkbox"
-                                           value="@(perm.Item1)_Create" id="crud_@(perm.Item1)_c"
-                                           data-parent="@perm.Item1">
-                                    <label class="form-check-label" for="crud_@(perm.Item1)_c">افزودن</label>
-                                </div>
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input crud-check" type="checkbox"
-                                           value="@(perm.Item1)_Edit" id="crud_@(perm.Item1)_e"
-                                           data-parent="@perm.Item1">
-                                    <label class="form-check-label" for="crud_@(perm.Item1)_e">ویرایش</label>
-                                </div>
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input crud-check" type="checkbox"
-                                           value="@(perm.Item1)_Delete" id="crud_@(perm.Item1)_d"
-                                           data-parent="@perm.Item1">
-                                    <label class="form-check-label" for="crud_@(perm.Item1)_d">حذف</label>
-                                </div>
-                                @if (perm.Item1 == "Parameter")
-                                {
-                                    <div class="form-check form-check-inline">
-                                        <input class="form-check-input crud-check" type="checkbox"
-                                               value="Parameter_Values" id="crud_Parameter_v"
-                                               data-parent="Parameter">
-                                        <label class="form-check-label" for="crud_Parameter_v">مقادیر</label>
-                                    </div>
-                                    <div id="crud_Parameter_values_sub" class="ms-4 mt-1" style="display:none">
-                                        <div class="form-check form-check-inline">
-                                            <input class="form-check-input crud-check" type="checkbox"
-                                                   value="Parameter_Values_Create">
-                                            <label class="form-check-label">افزودن مقدار</label>
-                                        </div>
-                                        <div class="form-check form-check-inline">
-                                            <input class="form-check-input crud-check" type="checkbox"
-                                                   value="Parameter_Values_Delete">
-                                            <label class="form-check-label">حذف مقدار</label>
-                                        </div>
-                                    </div>
-                                }
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input crud-check" type="checkbox"
+                                       value="@RoleChecker.EditUser.ToValue()" id="crud_User_e" data-parent="User">
+                                <label class="form-check-label" for="crud_User_e">ویرایش</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input crud-check" type="checkbox"
+                                       value="@RoleChecker.DeleteUser.ToValue()" id="crud_User_d" data-parent="User">
+                                <label class="form-check-label" for="crud_User_d">حذف</label>
                             </div>
                         </div>
-                    }
+                    </div>
+
+                    @* Role *@
+                    <div class="mb-2 border rounded p-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <input class="form-check-input perm-check" type="checkbox"
+                                   value="@RoleChecker.Role.ToValue()" id="perm_Role"
+                                   onchange="onMainPermChange('Role', this)">
+                            <label class="form-check-label fw-bold" for="perm_Role">سطح دسترسی</label>
+                            <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1 ms-auto"
+                                    onclick="toggleCrud('Role', this)">
+                                +
+                            </button>
+                        </div>
+                        <div id="crud_Role" class="ms-4 mt-2" style="display:none">
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input crud-check" type="checkbox"
+                                       value="@RoleChecker.CreateRole.ToValue()" id="crud_Role_c" data-parent="Role">
+                                <label class="form-check-label" for="crud_Role_c">افزودن</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input crud-check" type="checkbox"
+                                       value="@RoleChecker.EditRole.ToValue()" id="crud_Role_e" data-parent="Role">
+                                <label class="form-check-label" for="crud_Role_e">ویرایش</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input crud-check" type="checkbox"
+                                       value="@RoleChecker.DeleteRole.ToValue()" id="crud_Role_d" data-parent="Role">
+                                <label class="form-check-label" for="crud_Role_d">حذف</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    @* Unit *@
+                    <div class="mb-2 border rounded p-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <input class="form-check-input perm-check" type="checkbox"
+                                   value="@RoleChecker.Unit.ToValue()" id="perm_Unit"
+                                   onchange="onMainPermChange('Unit', this)">
+                            <label class="form-check-label fw-bold" for="perm_Unit">واحد</label>
+                            <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1 ms-auto"
+                                    onclick="toggleCrud('Unit', this)">
+                                +
+                            </button>
+                        </div>
+                        <div id="crud_Unit" class="ms-4 mt-2" style="display:none">
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input crud-check" type="checkbox"
+                                       value="@RoleChecker.CreateUnit.ToValue()" id="crud_Unit_c" data-parent="Unit">
+                                <label class="form-check-label" for="crud_Unit_c">افزودن</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input crud-check" type="checkbox"
+                                       value="@RoleChecker.EditUnit.ToValue()" id="crud_Unit_e" data-parent="Unit">
+                                <label class="form-check-label" for="crud_Unit_e">ویرایش</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input crud-check" type="checkbox"
+                                       value="@RoleChecker.DeleteUnit.ToValue()" id="crud_Unit_d" data-parent="Unit">
+                                <label class="form-check-label" for="crud_Unit_d">حذف</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    @* Personnel *@
+                    <div class="mb-2 border rounded p-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <input class="form-check-input perm-check" type="checkbox"
+                                   value="@RoleChecker.Personnel.ToValue()" id="perm_Personnel"
+                                   onchange="onMainPermChange('Personnel', this)">
+                            <label class="form-check-label fw-bold" for="perm_Personnel">پرسنل</label>
+                            <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1 ms-auto"
+                                    onclick="toggleCrud('Personnel', this)">
+                                +
+                            </button>
+                        </div>
+                        <div id="crud_Personnel" class="ms-4 mt-2" style="display:none">
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input crud-check" type="checkbox"
+                                       value="@RoleChecker.CreatePersonnel.ToValue()" id="crud_Personnel_c" data-parent="Personnel">
+                                <label class="form-check-label" for="crud_Personnel_c">افزودن</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input crud-check" type="checkbox"
+                                       value="@RoleChecker.EditPersonnel.ToValue()" id="crud_Personnel_e" data-parent="Personnel">
+                                <label class="form-check-label" for="crud_Personnel_e">ویرایش</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input crud-check" type="checkbox"
+                                       value="@RoleChecker.DeletePersonnel.ToValue()" id="crud_Personnel_d" data-parent="Personnel">
+                                <label class="form-check-label" for="crud_Personnel_d">حذف</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    @* Customer *@
+                    <div class="mb-2 border rounded p-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <input class="form-check-input perm-check" type="checkbox"
+                                   value="@RoleChecker.Customer.ToValue()" id="perm_Customer"
+                                   onchange="onMainPermChange('Customer', this)">
+                            <label class="form-check-label fw-bold" for="perm_Customer">مشتری</label>
+                            <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1 ms-auto"
+                                    onclick="toggleCrud('Customer', this)">
+                                +
+                            </button>
+                        </div>
+                        <div id="crud_Customer" class="ms-4 mt-2" style="display:none">
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input crud-check" type="checkbox"
+                                       value="@RoleChecker.CreateCustomer.ToValue()" id="crud_Customer_c" data-parent="Customer">
+                                <label class="form-check-label" for="crud_Customer_c">افزودن</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input crud-check" type="checkbox"
+                                       value="@RoleChecker.EditCustomer.ToValue()" id="crud_Customer_e" data-parent="Customer">
+                                <label class="form-check-label" for="crud_Customer_e">ویرایش</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input crud-check" type="checkbox"
+                                       value="@RoleChecker.DeleteCustomer.ToValue()" id="crud_Customer_d" data-parent="Customer">
+                                <label class="form-check-label" for="crud_Customer_d">حذف</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    @* Parameter *@
+                    <div class="mb-2 border rounded p-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <input class="form-check-input perm-check" type="checkbox"
+                                   value="@RoleChecker.Parameter.ToValue()" id="perm_Parameter"
+                                   onchange="onMainPermChange('Parameter', this)">
+                            <label class="form-check-label fw-bold" for="perm_Parameter">پارامتر</label>
+                            <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1 ms-auto"
+                                    onclick="toggleCrud('Parameter', this)">
+                                +
+                            </button>
+                        </div>
+                        <div id="crud_Parameter" class="ms-4 mt-2" style="display:none">
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input crud-check" type="checkbox"
+                                       value="@RoleChecker.CreateParameter.ToValue()" id="crud_Parameter_c" data-parent="Parameter">
+                                <label class="form-check-label" for="crud_Parameter_c">افزودن</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input crud-check" type="checkbox"
+                                       value="@RoleChecker.EditParameter.ToValue()" id="crud_Parameter_e" data-parent="Parameter">
+                                <label class="form-check-label" for="crud_Parameter_e">ویرایش</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input crud-check" type="checkbox"
+                                       value="@RoleChecker.DeleteParameter.ToValue()" id="crud_Parameter_d" data-parent="Parameter">
+                                <label class="form-check-label" for="crud_Parameter_d">حذف</label>
+                            </div>
+                            @* ParameterValue *@
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input crud-check" type="checkbox"
+                                       value="@RoleChecker.ParameterValue.ToValue()" id="crud_Parameter_v" data-parent="Parameter"
+                                       onchange="toggleParamValues(this)">
+                                <label class="form-check-label" for="crud_Parameter_v">مقادیر</label>
+                            </div>
+                            <div id="crud_Parameter_values_sub" class="ms-4 mt-1" style="display:none">
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input crud-check" type="checkbox"
+                                           value="@RoleChecker.CreateParameterValue.ToValue()" data-parent="Parameter">
+                                    <label class="form-check-label">افزودن مقدار</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input crud-check" type="checkbox"
+                                           value="@RoleChecker.EditParameterValue.ToValue()" data-parent="Parameter">
+                                    <label class="form-check-label">ویرایش مقدار</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input crud-check" type="checkbox"
+                                           value="@RoleChecker.DeleteParameterValue.ToValue()" data-parent="Parameter">
+                                    <label class="form-check-label">حذف مقدار</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    @* Product *@
+                    <div class="mb-2 border rounded p-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <input class="form-check-input perm-check" type="checkbox"
+                                   value="@RoleChecker.Product.ToValue()" id="perm_Product"
+                                   onchange="onMainPermChange('Product', this)">
+                            <label class="form-check-label fw-bold" for="perm_Product">کالا</label>
+                            <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1 ms-auto"
+                                    onclick="toggleCrud('Product', this)">
+                                +
+                            </button>
+                        </div>
+                        <div id="crud_Product" class="ms-4 mt-2" style="display:none">
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input crud-check" type="checkbox"
+                                       value="@RoleChecker.CreateProduct.ToValue()" id="crud_Product_c" data-parent="Product">
+                                <label class="form-check-label" for="crud_Product_c">افزودن</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input crud-check" type="checkbox"
+                                       value="@RoleChecker.EditProduct.ToValue()" id="crud_Product_e" data-parent="Product">
+                                <label class="form-check-label" for="crud_Product_e">ویرایش</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input crud-check" type="checkbox"
+                                       value="@RoleChecker.DeleteProduct.ToValue()" id="crud_Product_d" data-parent="Product">
+                                <label class="form-check-label" for="crud_Product_d">حذف</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    @* Order *@
+                    <div class="mb-2 border rounded p-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <input class="form-check-input perm-check" type="checkbox"
+                                   value="@RoleChecker.Order.ToValue()" id="perm_Order"
+                                   onchange="onMainPermChange('Order', this)">
+                            <label class="form-check-label fw-bold" for="perm_Order">سفارش</label>
+                            <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1 ms-auto"
+                                    onclick="toggleCrud('Order', this)">
+                                +
+                            </button>
+                        </div>
+                        <div id="crud_Order" class="ms-4 mt-2" style="display:none">
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input crud-check" type="checkbox"
+                                       value="@RoleChecker.CreateOrder.ToValue()" id="crud_Order_c" data-parent="Order">
+                                <label class="form-check-label" for="crud_Order_c">افزودن</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input crud-check" type="checkbox"
+                                       value="@RoleChecker.EditOrder.ToValue()" id="crud_Order_e" data-parent="Order">
+                                <label class="form-check-label" for="crud_Order_e">ویرایش</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input crud-check" type="checkbox"
+                                       value="@RoleChecker.DeleteOrder.ToValue()" id="crud_Order_d" data-parent="Order">
+                                <label class="form-check-label" for="crud_Order_d">حذف</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    @* ProductionReceipt *@
+                    <div class="mb-2 border rounded p-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <input class="form-check-input perm-check" type="checkbox"
+                                   value="@RoleChecker.ProductionReceipt.ToValue()" id="perm_ProductionReceipt"
+                                   onchange="onMainPermChange('ProductionReceipt', this)">
+                            <label class="form-check-label fw-bold" for="perm_ProductionReceipt">رسید تولید</label>
+                            <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1 ms-auto"
+                                    onclick="toggleCrud('ProductionReceipt', this)">
+                                +
+                            </button>
+                        </div>
+                        <div id="crud_ProductionReceipt" class="ms-4 mt-2" style="display:none">
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input crud-check" type="checkbox"
+                                       value="@RoleChecker.CreateProductionReceipt.ToValue()" id="crud_ProductionReceipt_c" data-parent="ProductionReceipt">
+                                <label class="form-check-label" for="crud_ProductionReceipt_c">افزودن</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input crud-check" type="checkbox"
+                                       value="@RoleChecker.EditProductionReceipt.ToValue()" id="crud_ProductionReceipt_e" data-parent="ProductionReceipt">
+                                <label class="form-check-label" for="crud_ProductionReceipt_e">ویرایش</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input crud-check" type="checkbox"
+                                       value="@RoleChecker.DeleteProductionReceipt.ToValue()" id="crud_ProductionReceipt_d" data-parent="ProductionReceipt">
+                                <label class="form-check-label" for="crud_ProductionReceipt_d">حذف</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    @* Report *@
+                    <div class="mb-2 border rounded p-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <input class="form-check-input perm-check" type="checkbox"
+                                   value="@RoleChecker.Report.ToValue()" id="perm_Report"
+                                   onchange="onMainPermChange('Report', this)">
+                            <label class="form-check-label fw-bold" for="perm_Report">گزارش تولید</label>
+                        </div>
+                    </div>
+
                 </div>
             </div>
             <div class="modal-footer">
@@ -412,6 +681,11 @@
                     });
                 }
             });
+        }
+
+                function toggleParamValues(checkbox) {
+            var sub = document.getElementById('crud_Parameter_values_sub');
+            sub.style.display = checkbox.checked ? 'block' : 'none';
         }
 
     </script>

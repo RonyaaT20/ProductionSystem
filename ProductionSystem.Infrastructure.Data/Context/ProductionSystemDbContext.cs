@@ -72,6 +72,7 @@ namespace ProductionSystem.Infrastructure.Data.Context
 
             modelBuilder.ApplyConfiguration(new RoleSeeder());
             modelBuilder.ApplyConfiguration(new UserSeeder());
+            modelBuilder.ApplyConfiguration(new PermissionSeeder());
         }
     }
 }

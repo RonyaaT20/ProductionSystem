@@ -26,8 +26,8 @@ namespace ProductionSystem.Application.Services
                 Id = r.Id,
                 Title = r.Title,
                 CreatedAt = r.CreatedAt.ToShamsi(),
-                Permissions = r.RolePermissions != null
-                    ? r.RolePermissions.Select(p => p.PermissionKey).ToList()
+                PermissionTitles = r.RolePermissions != null
+                    ? r.RolePermissions.Select(p => p.Permission.Title).ToList()
                     : new List<string>()
             }).ToList();
         }
@@ -42,8 +42,8 @@ namespace ProductionSystem.Application.Services
                 Title = r.Title,
                 CreatedAt = r.CreatedAt.ToString("yyyy/MM/dd"),
                 Permissions = r.RolePermissions != null
-                    ? r.RolePermissions.Select(p => p.PermissionKey).ToList()
-                    : new List<string>()
+                    ? r.RolePermissions.Select(p => p.PermissionId).ToList()
+                    : new List<int>()
             };
         }
 
@@ -56,7 +56,7 @@ namespace ProductionSystem.Application.Services
                     Title = dto.Title,
                     CreatedAt = System.DateTime.Now,
                     RolePermissions = dto.Permissions != null
-                        ? dto.Permissions.Select(p => new RolePermission { PermissionKey = p }).ToList()
+                        ? dto.Permissions.Select(p => new RolePermission { PermissionId = p }).ToList()
                         : new List<RolePermission>()
                 };
                 await _unitOfWork.Roles.AddAsync(role);
@@ -77,7 +77,7 @@ namespace ProductionSystem.Application.Services
                 else existing.RolePermissions = new List<RolePermission>();
                 if (dto.Permissions != null)
                     foreach (var p in dto.Permissions)
-                        existing.RolePermissions.Add(new RolePermission { PermissionKey = p });
+                        existing.RolePermissions.Add(new RolePermission { PermissionId = p });
                 _unitOfWork.Roles.Update(existing);
                 await _unitOfWork.SaveChangesAsync();
                 return true;

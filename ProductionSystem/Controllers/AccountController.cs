@@ -1,7 +1,15 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using ProductionSystem.Domain.IRepositories;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
+using ProductionSystem.Application.Security;
 
 namespace ProductionSystem.Controllers
 {
@@ -17,7 +25,7 @@ namespace ProductionSystem.Controllers
         public IActionResult Login()
         {
             
-            if (HttpContext.Session.GetString("UserId") != null)
+            if (User.GetUserId() == null)
                 return RedirectToAction("Index", "Home");
             return View();
         }
@@ -59,74 +67,133 @@ namespace ProductionSystem.Controllers
             var hash = BCrypt.Net.BCrypt.HashPassword(pass);
             return Content(hash);
         }
-
         [HttpPost]
         public async Task<IActionResult> Login(string username, string password)
         {
-            var user = await _unitOfWork.Users.GetByUsernameAsync(username);
-
-            if (user == null || !BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
+            try
             {
-                ViewBag.Error = "نام کاربری یا رمز عبور اشتباه است";
-                return View();
-            }
+                var user = await _unitOfWork.Users.GetByUsernameAsync(username);
 
-            if (!user.IsActive)
-            {
-                ViewBag.Error = "حساب کاربری شما غیرفعال است. با مدیر سیستم تماس بگیرید";
-                return View();
-            }
-
-            if (user != null && user.IsActive && BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
-            {
-                HttpContext.Session.SetString("UserId", user.Id.ToString());
-                HttpContext.Session.SetString("FullName", user.FullName);
-                HttpContext.Session.SetString("Username", user.Username);
-                HttpContext.Session.SetInt32("RoleId", user.RoleId);
-
-                // ذخیره Permission ها
-                var permissions = "";
-              
-
-                if (user.Id==1)
+                if (user == null || !BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
                 {
-                    permissions += "User" + ",";
-                    permissions += "Role" + ",";
-                    permissions += "Unit" + ",";
-                    permissions += "Personnel" + ",";
-                    permissions += "Customer" + ",";
-                    permissions += "Parameter" + ",";
-                    permissions += "Product" + ",";
-                    permissions += "Order" + ",";
-                    permissions += "ProductionReceipt" + ",";
-                    permissions += "WasteReceipt" + ",";
-                    permissions += "Report" + ",";
-                }
-                else
-                {
-                    if (user.Role != null && user.Role.RolePermissions != null)
-                    {
-                        foreach (var rp in user.Role.RolePermissions)
-                        {
-                            permissions += rp.PermissionKey + ",";
-                        }
-                    }
+                    ViewBag.Error = "نام کاربری یا رمز عبور اشتباه است";
+                    return View();
                 }
 
+                if (!user.IsActive)
+                {
+                    ViewBag.Error = "حساب کاربری شما غیرفعال است. با مدیر سیستم تماس بگیرید";
+                    return View();
+                }
 
-                    HttpContext.Session.SetString("Permissions", permissions);
+                // Claims 
+                var claims = new List<Claim>
+                { 
+                    // یوزرنیم 
+                    new Claim(ClaimTypes.Name, username), 
+ 
+                    // اسم واقعی 
+                    new Claim("FullName", user.FullName ?? ""), 
+ 
+                    // آیدی 
+                    new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
+                };
 
+                var identity = new ClaimsIdentity(
+                    claims,
+                    CookieAuthenticationDefaults.AuthenticationScheme);
+
+                var principal = new ClaimsPrincipal(identity);
+                var properties = new AuthenticationProperties()
+                {
+                    IsPersistent = true
+                };
+
+                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal, properties);
+
+                // بعد از لاگین موفق 
                 return RedirectToAction("Index", "Home");
             }
+            catch (Exception ex)
+            {
+                ViewBag.Error = ex.Message;
+                return View();
+            }
 
-            ViewBag.Error = "نام کاربری یا رمز عبور اشتباه است";
-            return View();
         }
 
-        public IActionResult Logout()
+
+
+
+        //[HttpPost]
+        //public async Task<IActionResult> Login(string username, string password)
+        //{
+        //    var user = await _unitOfWork.Users.GetByUsernameAsync(username);
+
+        //    if (user == null || !BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
+        //    {
+        //        ViewBag.Error = "نام کاربری یا رمز عبور اشتباه است";
+        //        return View();
+        //    }
+
+        //    if (!user.IsActive)
+        //    {
+        //        ViewBag.Error = "حساب کاربری شما غیرفعال است. با مدیر سیستم تماس بگیرید";
+        //        return View();
+        //    }
+
+        //    if (user != null && user.IsActive && BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
+        //    {
+        //        HttpContext.Session.SetString("UserId", user.Id.ToString());
+        //        HttpContext.Session.SetString("FullName", user.FullName);
+        //        HttpContext.Session.SetString("Username", user.Username);
+        //        HttpContext.Session.SetInt32("RoleId", user.RoleId);
+
+        //        // ذخیره Permission ها
+        //        //var permissions = "";
+
+
+        //        //if (user.Id==1)
+        //        //{
+        //        //    permissions += "User" + ",";
+        //        //    permissions += "Role" + ",";
+        //        //    permissions += "Unit" + ",";
+        //        //    permissions += "Personnel" + ",";
+        //        //    permissions += "Customer" + ",";
+        //        //    permissions += "Parameter" + ",";
+        //        //    permissions += "Product" + ",";
+        //        //    permissions += "Order" + ",";
+        //        //    permissions += "ProductionReceipt" + ",";
+        //        //    permissions += "WasteReceipt" + ",";
+        //        //    permissions += "Report" + ",";
+        //        //}
+        //        //else
+        //        //{
+        //        //    if (user.Role != null && user.Role.RolePermissions != null)
+        //        //    {
+        //        //        foreach (var rp in user.Role.RolePermissions)
+        //        //        {
+        //        //            permissions += rp.PermissionKey + ",";
+        //        //        }
+        //        //    }
+        //        //}
+
+
+        //            HttpContext.Session.SetString("Permissions", JsonConvert.SerializeObject(user.Role.RolePermissions.Select(r => r.PermissionId).ToList()));
+
+        //        return RedirectToAction("Index", "Home");
+        //    }
+
+        //    ViewBag.Error = "نام کاربری یا رمز عبور اشتباه است";
+        //    return View();
+        //}
+
+        public async Task<IActionResult> Logout()
         {
-            HttpContext.Session.Clear();
-            return RedirectToAction("Login");
+            await HttpContext.SignOutAsync(
+                CookieAuthenticationDefaults.AuthenticationScheme);
+
+            return RedirectToAction("Login", "Account");
         }
     }
 }

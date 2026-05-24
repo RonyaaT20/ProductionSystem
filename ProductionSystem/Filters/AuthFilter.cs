@@ -24,42 +24,42 @@ namespace ProductionSystem.Filters
 
         public void OnActionExecuting(ActionExecutingContext context)
         {
-            var session = context.HttpContext.Session;
-            var userId = session.GetString("UserId");
-            var controller = context.RouteData.Values["controller"].ToString();
-            var action = context.RouteData.Values["action"].ToString();
+            //var session = context.HttpContext.Session;
+            //var userId = session.GetString("UserId");
+            //var controller = context.RouteData.Values["controller"].ToString();
+            //var action = context.RouteData.Values["action"].ToString();
 
-            // صفحه لاگین نیاز به چک ندارد
-            if (controller == "Account")
-                return;
+            //// صفحه لاگین نیاز به چک ندارد
+            //if (controller == "Account")
+            //    return;
 
-            // اگر لاگین نکرده
-            if (string.IsNullOrEmpty(userId))
-            {
-                context.Result = new RedirectToActionResult("Login", "Account", null);
-                return;
-            }
-            // Home همیشه دسترسی داره
-            if (controller == "Home")
-                return;
+            //// اگر لاگین نکرده
+            //if (string.IsNullOrEmpty(userId))
+            //{
+            //    context.Result = new RedirectToActionResult("Login", "Account", null);
+            //    return;
+            //}
+            //// Home همیشه دسترسی داره
+            //if (controller == "Home")
+            //    return;
 
-            // چک سطح دسترسی
-            if (ControllerPermissions.ContainsKey(controller))
-            {
-                var requiredPermission = ControllerPermissions[controller];
-                var userPermissions = session.GetString("Permissions") ?? "";
+            //// چک سطح دسترسی
+            //if (ControllerPermissions.ContainsKey(controller))
+            //{
+            //    var requiredPermission = ControllerPermissions[controller];
+            //    var userPermissions = session.GetString("Permissions") ?? "";
 
-                if (!userPermissions.Contains(requiredPermission))
-                {
-                    context.Result = new ContentResult
-                    {
-                        Content = "<div style='padding:40px;text-align:center;font-family:Tahoma'><h3>دسترسی ندارید</h3><p>شما به این بخش دسترسی ندارید.</p></div>",
-                        ContentType = "text/html",
-                        StatusCode = 403
-                    };
-                    return;
-                }
-            }
+            //    if (!userPermissions.Contains(requiredPermission))
+            //    {
+            //        context.Result = new ContentResult
+            //        {
+            //            Content = "<div style='padding:40px;text-align:center;font-family:Tahoma'><h3>دسترسی ندارید</h3><p>شما به این بخش دسترسی ندارید.</p></div>",
+            //            ContentType = "text/html",
+            //            StatusCode = 403
+            //        };
+            //        return;
+            //    }
+            //}
         }
 
         public void OnActionExecuted(ActionExecutedContext context) { }

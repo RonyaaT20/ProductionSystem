@@ -1,4 +1,11 @@
-﻿@model List<ProductionSystem.Domain.DTOs.OrderDto>
+﻿@using ProductionSystem.Domain.DTOs
+@using ProductionSystem.Domain.Utilities
+@using ProductionSystem.Application.Security
+@using ProductionSystem.Application.Services
+@using ProductionSystem.Application.IServices
+@inject IPermissionService PermissionService
+
+@model List<ProductionSystem.Domain.DTOs.OrderDto>
 
 @{
     ViewData["Title"] = "سفارشات";
@@ -13,7 +20,10 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h4>لیست سفارشات</h4>
     <input type="text" id="searchInput" placeholder="جستجو بر اساس عنوان ، کد ، مشتری یا کالا..." style="  width: 560px; padding: 12px; font-size: 16px; border-radius: 12px; border: 2px solid #1470b8; margin-bottom: 20px; outline: none; margin-left: 60px; text-align: center; color: #1470b8; margin-top:20px; background-color:transparent; height:45px;">
-    <button class="btn btn-primary" onclick="openCreateModal()">+ ثبت سفارش</button>
+    @if (PermissionService.CheckPermission(RoleChecker.CreateOrder.ToValue(), User.GetUserId()))
+    {
+        <button class="btn btn-primary" onclick="openCreateModal()">+ ثبت سفارش</button>
+    }
 </div>
 
 <table class="table table-bordered table-hover" id="OrderTable">
@@ -45,8 +55,15 @@
                     <div class="dropdown">
                         <button class="btn btn-sm btn-light" data-bs-toggle="dropdown">⋮</button>
                         <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="#" onclick="openEditModal(@o.Id)">ویرایش</a></li>
-                            <li><a class="dropdown-item text-danger" href="#" onclick="deleteItem(@o.Id)">حذف</a></li>
+                            @if (PermissionService.CheckPermission(RoleChecker.EditOrder.ToValue(), User.GetUserId()))
+                            {
+                                <li><a class="dropdown-item" href="#" onclick="openEditModal(@o.Id)">ویرایش</a></li>
+                            }
+                            @if (PermissionService.CheckPermission(RoleChecker.DeleteOrder.ToValue(), User.GetUserId()))
+                            {
+                                <li><a class="dropdown-item text-danger" href="#" onclick="deleteItem(@o.Id)">حذف</a></li>
+
+                            }
                         </ul>
                     </div>
                 </td>

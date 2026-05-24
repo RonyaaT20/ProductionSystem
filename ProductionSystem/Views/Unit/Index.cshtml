@@ -1,5 +1,10 @@
-﻿@model List<ProductionSystem.Domain.DTOs.UnitDto>
-
+﻿@using ProductionSystem.Application.IServices
+@using ProductionSystem.Application.Security
+@using ProductionSystem.Domain.DTOs
+@using ProductionSystem.Domain.Utilities
+@using Microsoft.AspNetCore.Mvc.TagHelpers
+@model List<ProductionSystem.Domain.DTOs.UnitDto>
+@inject IPermissionService PermissionService
 @{
     ViewData["Title"] = "واحدها";
     ViewData["Breadcrumb"] = new List<(string, string)>
@@ -13,12 +18,17 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h4>لیست واحدها</h4>
     <input type="text" id="searchInput" placeholder="جستجو بر اساس عنوان ، مقداری/شمارشی ، تعداد اعشار ، ایجاد کننده ، یا تاریخ ایجاد..." style="  width: 560px; padding: 12px; font-size: 16px; border-radius: 12px; border: 2px solid #1470b8; margin-bottom: 20px; outline: none; margin-left: 60px; text-align: center; color: #1470b8; margin-top:20px; background-color:transparent; height:45px;">
-    <button class="btn btn-primary"
-            onclick="openCreateModal()"
-            data-bs-toggle="modal"
-            data-bs-target="#unitModal">
-        + تعریف واحد
-    </button>
+    @if (PermissionService.CheckPermission(RoleChecker.CreateUnit.ToValue(), User.GetUserId()))
+    {
+        <button class="btn btn-primary"
+                onclick="openCreateModal()"
+                data-bs-toggle="modal"
+                data-bs-target="#unitModal">
+            + تعریف واحد
+        </button>
+    }
+
+
 </div>
 
 <table class="table table-bordered table-hover" id="UnitTable">
@@ -52,21 +62,31 @@
                     <ul class="dropdown-menu">
                         @*   <li><a class="dropdown-item" href="#" onclick="openEditModal(@unit.Id)">ویرایش</a></li>
                         <li><a class="dropdown-item text-danger" href="#" onclick="deleteUnit(@unit.Id)">حذف</a></li> *@
-                        <li>
-                            <a class="dropdown-item"
-                               href="#"
-                               onclick="openEditModal(@unit.Id)"
-                               data-bs-toggle="modal"
-                               data-bs-target="#unitModal">
-                                ویرایش
-                            </a></li>
+                        @if (PermissionService.CheckPermission(RoleChecker.EditUnit.ToValue(), User.GetUserId()))
+                        {
+                            <li>
+                                <a class="dropdown-item"
+                                   href="#"
+                                   onclick="openEditModal(@unit.Id)"
+                                   data-bs-toggle="modal"
+                                   data-bs-target="#unitModal">
+                                    ویرایش
+                                </a>
+                            </li>
+                        }
 
-                        <li>
-                            <a class="dropdown-item text-danger"
-                               href="#"
-                               onclick="deleteItem(@unit.Id)">
-                                حذف
-                            </a></li>
+                        @if (PermissionService.CheckPermission(RoleChecker.DeleteUnit.ToValue(), User.GetUserId()))
+                        {
+                            <li>
+                                <a class="dropdown-item text-danger"
+                                   href="#"
+                                   onclick="deleteItem(@unit.Id)">
+                                    حذف
+                                </a>
+                            </li>
+                        }
+
+
                     </ul>
                 </div>
             </td>

@@ -1,0 +1,75 @@
+﻿using System;
+using System.Net;
+using ProductionSystem.Application.Api;
+
+namespace ProductionSystem.Application.Exceptions
+{
+    public class AppException:Exception
+    {
+        public HttpStatusCode HttpStatusCode { get; set; }
+        public ApiResultStatusCode ApiStatusCode { get; set; }
+        public object AdditionalData { get; set; }
+        public AppException() : this(ApiResultStatusCode.InternalServerError)
+        {
+
+        }
+        public AppException(ApiResultStatusCode statusCode) : this(statusCode, null)
+        {
+
+        }
+        public AppException(string message) : this(ApiResultStatusCode.InternalServerError, message)
+        {
+
+        }
+        public AppException(ApiResultStatusCode statusCode, string message) : this(statusCode, message, HttpStatusCode.InternalServerError)
+        {
+
+        }
+        public AppException(string message, object additionalData) : this(ApiResultStatusCode.InternalServerError, message, additionalData)
+        {
+
+        }
+        public AppException(ApiResultStatusCode statusCode, object additionalData) : this(statusCode, null, additionalData)
+        {
+
+        }
+        public AppException(ApiResultStatusCode statusCode, string message, object additionalData) : this(statusCode, message, HttpStatusCode.InternalServerError, additionalData)
+        {
+
+        }
+        public AppException(ApiResultStatusCode statusCode, string message, HttpStatusCode httpStatusCode) : this(statusCode, message, httpStatusCode, null)
+        {
+
+        }
+        public AppException(ApiResultStatusCode statusCode, string message, HttpStatusCode httpStatusCode, object additionalData) : this(statusCode, message, httpStatusCode, null, additionalData)
+        {
+
+        }
+        public AppException(string message, Exception exception) : this(ApiResultStatusCode.InternalServerError, message, exception)
+        {
+
+        }
+        public AppException(string message, Exception exception, object additionalData) : this(ApiResultStatusCode.InternalServerError, message, exception, additionalData)
+        {
+
+        }
+        public AppException(ApiResultStatusCode statusCode, string message, Exception exception) : this(statusCode, message, HttpStatusCode.InternalServerError, exception)
+        {
+
+        }
+        public AppException(ApiResultStatusCode statusCode, string message, Exception exception, object additionalData) : this(statusCode, message, HttpStatusCode.InternalServerError, exception, additionalData)
+        {
+
+        }
+        public AppException(ApiResultStatusCode statusCode, string message, HttpStatusCode httpStatusCode, Exception exception) : this(statusCode, message, httpStatusCode, exception, null)
+        {
+
+        }
+        public AppException(ApiResultStatusCode statusCode, string message, HttpStatusCode httpStatusCode, Exception exception, object additionalData) : base(message, exception)
+        {
+            ApiStatusCode = statusCode;
+            HttpStatusCode = httpStatusCode;
+            AdditionalData = additionalData;
+        }
+    }
+}

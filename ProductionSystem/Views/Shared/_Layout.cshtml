@@ -1,4 +1,10 @@
-﻿@using Microsoft.AspNetCore.Http
+﻿
+@using Microsoft.AspNetCore.Http
+@using ProductionSystem.Application.IServices
+@using ProductionSystem.Application.Security
+@using ProductionSystem.Domain.DTOs
+@using ProductionSystem.Domain.Utilities
+@inject IPermissionService PermissionService
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
@@ -260,19 +266,19 @@
                             <!--begin::اطلاعات پایه-->
                             @{
                                 var perms = Context.Session.GetString("Permissions") ?? "";
-                                bool hasUser = perms.Contains("User");
-                                bool hasRole = perms.Contains("Role");
-                                bool hasUnit = perms.Contains("Unit");
-                                bool hasPersonnel = perms.Contains("Personnel");
-                                bool hasCustomer = perms.Contains("Customer");
-                                bool hasParameter = perms.Contains("Parameter");
-                                bool hasProduct = perms.Contains("Product");
-                                bool hasOrder = perms.Contains("Order");
-                                bool hasProductionReceipt = perms.Contains("ProductionReceipt");
-                                bool hasWasteReceipt = perms.Contains("WasteReceipt");
-                                bool hasReport = perms.Contains("Report");
+                                bool hasUser = PermissionService.CheckPermission(RoleChecker.User.ToValue(), User.GetUserId());
+                                bool hasRole = PermissionService.CheckPermission(RoleChecker.Role.ToValue(), User.GetUserId());
+                                bool hasUnit = PermissionService.CheckPermission(RoleChecker.Unit.ToValue(), User.GetUserId());
+                                bool hasPersonnel = PermissionService.CheckPermission(RoleChecker.Personnel.ToValue(), User.GetUserId());
+                                bool hasCustomer = PermissionService.CheckPermission(RoleChecker.Customer.ToValue(), User.GetUserId());
+                                bool hasParameter = PermissionService.CheckPermission(RoleChecker.Parameter.ToValue(), User.GetUserId());
+                                bool hasProduct = PermissionService.CheckPermission(RoleChecker.Product.ToValue(), User.GetUserId());
+                                bool hasOrder = PermissionService.CheckPermission(RoleChecker.Order.ToValue(), User.GetUserId());
+                                bool hasProductionReceipt = PermissionService.CheckPermission(RoleChecker.ProductionReceipt.ToValue(), User.GetUserId());
+                                // bool hasWasteReceipt = perms.Contains("WasteReceipt");
+                                bool hasReport = PermissionService.CheckPermission(RoleChecker.Report.ToValue(), User.GetUserId());
                                 bool hasAnyBase = hasUser || hasRole || hasUnit || hasPersonnel || hasCustomer || hasParameter || hasProduct;
-                                bool hasAnyProd = hasOrder || hasProductionReceipt || hasWasteReceipt || hasReport;
+                                bool hasAnyProd = hasOrder || hasProductionReceipt || hasReport;
                             }
 
                             @if (hasAnyBase)
@@ -431,31 +437,31 @@
             base: {
                 title: 'اطلاعات پایه',
                 items: [
-                    @if ((Context.Session.GetString("Permissions") ?? "").Contains("User"))
+                    @if (PermissionService.CheckPermission(RoleChecker.User.ToValue(), User.GetUserId()))
                     {
                             <text>{ title: 'کاربر', url: '/User/Index' },</text>
                     }
-                    @if ((Context.Session.GetString("Permissions") ?? "").Contains("Role"))
+                    @if (PermissionService.CheckPermission(RoleChecker.Role.ToValue(), User.GetUserId()))
                     {
                             <text>{ title: 'سطح دسترسی', url: '/Role/Index' },</text>
                     }
-                    @if ((Context.Session.GetString("Permissions") ?? "").Contains("Unit"))
+                    @if (PermissionService.CheckPermission(RoleChecker.Unit.ToValue(), User.GetUserId()))
                     {
                             <text>{ title: 'واحد', url: '/Unit/Index' },</text>
                     }
-                    @if ((Context.Session.GetString("Permissions") ?? "").Contains("Personnel"))
+                    @if (PermissionService.CheckPermission(RoleChecker.Personnel.ToValue(), User.GetUserId()))
                     {
                             <text>{ title: 'پرسنل', url: '/Personnel/Index' },</text>
                     }
-                    @if ((Context.Session.GetString("Permissions") ?? "").Contains("Customer"))
+                    @if (PermissionService.CheckPermission(RoleChecker.Customer.ToValue(), User.GetUserId()))
                     {
                             <text>{ title: 'مشتری', url: '/Customer/Index' },</text>
                     }
-                    @if ((Context.Session.GetString("Permissions") ?? "").Contains("Parameter"))
+                    @if (PermissionService.CheckPermission(RoleChecker.Parameter.ToValue(), User.GetUserId()))
                     {
                             <text>{ title: 'پارامتر', url: '/Parameter/Index' },</text>
                     }
-                    @if ((Context.Session.GetString("Permissions") ?? "").Contains("Product"))
+                    @if (PermissionService.CheckPermission(RoleChecker.Product.ToValue(), User.GetUserId()))
                     {
                             <text>{ title: 'کالا', url: '/Product/Index' },</text>
                     }
@@ -464,15 +470,15 @@
             prod: {
                 title: 'تولید',
                 items: [
-                    @if ((Context.Session.GetString("Permissions") ?? "").Contains("Order"))
+                    @if (PermissionService.CheckPermission(RoleChecker.Order.ToValue(), User.GetUserId()))
                     {
                             <text>{ title: 'سفارش', url: '/Order/Index' },</text>
                     }
-                    @if ((Context.Session.GetString("Permissions") ?? "").Contains("ProductionReceipt"))
+                    @if (PermissionService.CheckPermission(RoleChecker.ProductionReceipt.ToValue(), User.GetUserId()))
                     {
                             <text>{ title: 'رسید تولید', url: '/ProductionReceipt/Index' },</text>
                     }
-                    @if ((Context.Session.GetString("Permissions") ?? "").Contains("Report"))
+                    @if (PermissionService.CheckPermission(RoleChecker.Report.ToValue(), User.GetUserId()))
                     {
                             <text>{ title: 'گزارش تولید', url: '/Report/Production' },</text>
                     }

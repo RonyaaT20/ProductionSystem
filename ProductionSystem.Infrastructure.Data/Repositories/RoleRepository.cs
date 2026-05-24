@@ -15,6 +15,7 @@ namespace ProductionSystem.Infrastructure.Data.Repositories
         {
             return await _dbSet
                 .Include(r => r.RolePermissions)
+                .ThenInclude(rp => rp.Permission)
                 .ToListAsync();
         }
 
