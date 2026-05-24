@@ -29,9 +29,10 @@ namespace ProductionSystem.Controllers
         {
             var receipt = await _unitOfWork.ProductionReceipts.GetByIdAsync(id);
             if (receipt == null)
-                return View("PrintNotFound"); return View(receipt);
+                return View("PrintNotFound"); 
+            return View(receipt);
         }
-
+        
         public async Task<IActionResult> GetProductByOrder(int orderId)
         {
             var order = await _unitOfWork.Orders.GetByIdAsync(orderId);
