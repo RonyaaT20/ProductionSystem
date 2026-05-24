@@ -28,8 +28,8 @@ namespace ProductionSystem.Controllers
         public async Task<IActionResult> Print(int id)
         {
             var receipt = await _unitOfWork.ProductionReceipts.GetByIdAsync(id);
-            if (receipt == null) return NotFound();
-            return View(receipt);
+            if (receipt == null)
+                return View("PrintNotFound"); return View(receipt);
         }
 
         public async Task<IActionResult> GetProductByOrder(int orderId)
