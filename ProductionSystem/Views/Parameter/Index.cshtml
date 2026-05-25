@@ -63,25 +63,27 @@
                 <td>@p.UnitTitle</td>
                 <td>@(p.Values != null ? string.Join(", ", p.Values) : "-")</td>
                 <td>
-                    <div class="dropdown">
-                        <button class="btn btn-sm btn-light" data-bs-toggle="dropdown">⋮</button>
-                        <ul class="dropdown-menu">
-                            @if (PermissionService.CheckPermission(RoleChecker.ParameterValue.ToValue(), User.GetUserId()))
-                            {
-                                <li><a class="dropdown-item" href="#" onclick="openValuesModal(@p.Id, '@p.Title')">مقادیر</a></li>
+                    @{
+                        var canEdit = PermissionService.CheckPermission(RoleChecker.EditParameter.ToValue(), User.GetUserId());
+                        var canDelete = PermissionService.CheckPermission(RoleChecker.DeleteParameter.ToValue(), User.GetUserId());
+                    }
 
-                            }
-                            @if (PermissionService.CheckPermission(RoleChecker.EditParameter.ToValue(), User.GetUserId()))
-                            {
-                                <li><a class="dropdown-item" href="#" onclick="openEditModal(@p.Id)">ویرایش</a></li>
-                            }
-                            @if (PermissionService.CheckPermission(RoleChecker.DeleteParameter.ToValue(), User.GetUserId()))
-                            {
-                                <li><a class="dropdown-item text-danger" href="#" onclick="deleteItem(@p.Id)">حذف</a></li>
-
-                            }
-                        </ul>
-                    </div>
+                    @if (canEdit || canDelete)
+                    {
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-light" data-bs-toggle="dropdown">⋮</button>
+                            <ul class="dropdown-menu">
+                                @if (canEdit)
+                                {
+                                    <li><a class="dropdown-item" href="#" onclick="openEditModal(@p.Id)">ویرایش</a></li>
+                                }
+                                @if (canDelete)
+                                {
+                                    <li><a class="dropdown-item text-danger" href="#" onclick="deleteItem(@p.Id)">حذف</a></li>
+                                }
+                            </ul>
+                        </div>
+                    }
                 </td>
             </tr>
         }

@@ -57,20 +57,27 @@
                 <td>@(u.IsActive ? "فعال" : "غیرفعال")</td>
                 <td>@u.CreatedAt</td>
                 <td>
-                    <div class="dropdown">
-                        <button class="btn btn-sm btn-light" data-bs-toggle="dropdown">⋮</button>
-                        <ul class="dropdown-menu">
-                            @if (PermissionService.CheckPermission(RoleChecker.EditCustomer.ToValue(), User.GetUserId()))
-                            {
-                                <li><a class="dropdown-item" href="#" onclick="openEditModal(@u.Id)">ویرایش</a></li>
-                            }
-                            @if (PermissionService.CheckPermission(RoleChecker.DeleteCustomer.ToValue(), User.GetUserId()))
-                            {
-                                <li><a class="dropdown-item text-danger" href="#" onclick="deleteItem(@u.Id)">حذف</a></li>
+                    @{
+                        var canEdit = PermissionService.CheckPermission(RoleChecker.EditUser.ToValue(), User.GetUserId());
+                        var canDelete = PermissionService.CheckPermission(RoleChecker.DeleteUser.ToValue(), User.GetUserId());
+                    }
 
-                            }
-                        </ul>
-                    </div>
+                    @if (canEdit || canDelete)
+                    {
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-light" data-bs-toggle="dropdown">⋮</button>
+                            <ul class="dropdown-menu">
+                                @if (canEdit)
+                                {
+                                    <li><a class="dropdown-item" href="#" onclick="openEditModal(@u.Id)">ویرایش</a></li>
+                                }
+                                @if (canDelete)
+                                {
+                                    <li><a class="dropdown-item text-danger" href="#" onclick="deleteItem(@u.Id)">حذف</a></li>
+                                }
+                            </ul>
+                        </div>
+                    }
                 </td>
             </tr>
         }
