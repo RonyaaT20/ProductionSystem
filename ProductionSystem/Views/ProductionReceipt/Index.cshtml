@@ -291,7 +291,7 @@
             });
         }
 
-        function loadProducts(selectedId) {
+        function loadProducts(selectedId, disableSelect) {
             $.get('/Product/GetAllJson', function (data) {
                 var sel = document.getElementById('itemProductSelect');
                 sel.innerHTML = '<option value="">انتخاب کنید</option>';
@@ -301,7 +301,11 @@
                     if (selectedId && p.id == selectedId) opt.selected = true;
                     sel.appendChild(opt);
                 });
-                if (selectedId) loadProductParams(selectedId);
+
+                // قفل یا آزاد کردن select کالا
+                sel.disabled = disableSelect === true;
+
+                if (selectedId && !disableSelect) loadProductParams(selectedId);
             });
         }
 
@@ -347,6 +351,9 @@
 
         function loadOrderInfo(orderId) {
             if (!orderId) {
+                // وقتی سفارش پاک شد، کالا رو آزاد کن
+                var productSelect = document.getElementById('itemProductSelect');
+                productSelect.disabled = false;
                 loadProducts(null);
                 document.getElementById('parametersList').innerHTML = '';
                 return;
@@ -354,12 +361,24 @@
 
             $.get('/ProductionReceipt/GetProductByOrder?orderId=' + orderId, function (data) {
                 if (data) {
-                    loadProducts(data.productId);
+                    // لود کالا و قفل کردنش
+                    loadProducts(data.productId, true); // true = disable
                     document.getElementById('itemProductId').value = data.productId;
-                    if (data.parameters) renderParameters(data.parameters);
+
+                    // رندر پارامترها از داده سفارش (نه درخواست جداگانه)
+                    if (data.parameters) {
+                        renderParameters(data.parameters.map(function(p) {
+                            return {
+                                parameterId: p.parameterId,
+                                parameterTitle: p.parameterTitle,
+                                values: p.values || []
+                            };
+                        }));
+                    }
                 }
             });
         }
+
 
         function loadProductParams(productId) {
             if (!productId) {

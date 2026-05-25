@@ -66,6 +66,7 @@
                     @{
                         var canEdit = PermissionService.CheckPermission(RoleChecker.EditParameter.ToValue(), User.GetUserId());
                         var canDelete = PermissionService.CheckPermission(RoleChecker.DeleteParameter.ToValue(), User.GetUserId());
+                        var canAddValue = PermissionService.CheckPermission(RoleChecker.ParameterValue.ToValue(), User.GetUserId());
                     }
 
                     @if (canEdit || canDelete)
@@ -73,6 +74,11 @@
                         <div class="dropdown">
                             <button class="btn btn-sm btn-light" data-bs-toggle="dropdown">⋮</button>
                             <ul class="dropdown-menu">
+
+                                @if (canAddValue)
+                                {
+                                    <li><a class="dropdown-item" href="#" onclick="openValuesModal(@p.Id)">مقادیر</a></li>
+                                }
                                 @if (canEdit)
                                 {
                                     <li><a class="dropdown-item" href="#" onclick="openEditModal(@p.Id)">ویرایش</a></li>
