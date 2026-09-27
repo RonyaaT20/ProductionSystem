@@ -24,23 +24,22 @@ namespace ProductionSystem.Controllers
 
         public IActionResult Login()
         {
-            
-            if (User.GetUserId() == null)
+            if (User.GetUserId() != 0)
                 return RedirectToAction("Index", "Home");
             return View();
         }
         public async Task<IActionResult> Profile()
         {
-            var userId = HttpContext.Session.GetString("UserId");
-            if (userId == null) return RedirectToAction("Login");
+            var userId = User.GetUserId();
+            if (userId == 0) return RedirectToAction("Login");
             return View();
         }
 
         [HttpPost]
         public async Task<IActionResult> ChangePassword(string currentPassword, string newPassword, string confirmPassword)
         {
-            var userId = HttpContext.Session.GetString("UserId");
-            if (userId == null) return RedirectToAction("Login");
+            var userId = User.GetUserId();
+            if (userId == 0) return RedirectToAction("Login");
 
             if (newPassword != confirmPassword)
             {
@@ -48,7 +47,7 @@ namespace ProductionSystem.Controllers
                 return RedirectToAction("Profile");
             }
 
-            var user = await _unitOfWork.Users.GetByIdAsync(int.Parse(userId));
+            var user = await _unitOfWork.Users.GetByIdAsync(userId);
             if (user == null || !BCrypt.Net.BCrypt.Verify(currentPassword, user.PasswordHash))
             {
                 TempData["Error"] = "رمز عبور فعلی اشتباه است";

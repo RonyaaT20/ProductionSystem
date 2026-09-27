@@ -1,34 +1,190 @@
-﻿@{
+@{
     ViewData["Title"] = "ورود";
     Layout = null;
 }
 
 <!DOCTYPE html>
-<html lang="fa" dir="ltr">
+<html lang="fa" dir="rtl">
 <head>
-    <title>سیستم تولید - ورود</title>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>سیستم پایش تولید - ورود</title>
+    <link rel="shortcut icon" href="~/media/logos/favicon.ico" />
 
     <!-- Fonts -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,400,500,600,700" />
 
     <!-- Global Stylesheets -->
-    <link href="~/plugins/global/plugins.bundle.css" rel="stylesheet" type="text/css" />
+    <link href="~/plugins/global/plugins.bundle.rtl.css" rel="stylesheet" type="text/css" />
     <link href="~/css/style.bundle.rtl.css" rel="stylesheet" type="text/css" />
 
     <style>
+        body {
+            background: #eef2f7;
+        }
 
+        [data-bs-theme="dark"] body {
+            background: #1a1d29;
+        }
+
+        .auth-card {
+            width: 100%;
+            max-width: 960px;
+            border-radius: 1.5rem;
+            overflow: hidden;
+            box-shadow: 0 1.5rem 3rem rgba(20, 112, 184, 0.15);
+        }
+
+        /* -------- Brand panel -------- */
+        .auth-brand-panel {
+            position: relative;
+            flex: 0 0 44%;
+            background: linear-gradient(135deg, #1470b8 0%, #0d4f85 100%);
+            color: #fff;
+            overflow: hidden;
+        }
+
+        .auth-brand-panel::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background-image: radial-gradient(rgba(255, 255, 255, 0.12) 1px, transparent 1px);
+            background-size: 22px 22px;
+            opacity: .6;
+        }
+
+        .auth-brand-watermark {
+            position: absolute;
+            font-size: 260px;
+            color: #fff;
+            opacity: 0.07;
+            left: -60px;
+            bottom: -60px;
+            transform: rotate(-12deg);
+            line-height: 1;
+        }
+
+        .auth-brand-badge {
+            width: 64px;
+            height: 64px;
+            border-radius: 1rem;
+            background: rgba(255, 255, 255, 0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+        }
+
+        .auth-feature-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .auth-feature-icon {
+            width: 38px;
+            height: 38px;
+            flex-shrink: 0;
+            border-radius: .65rem;
+            background: rgba(255, 255, 255, 0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        /* -------- Form panel -------- */
+        .auth-form-panel {
+            flex: 1 1 auto;
+            background: var(--bs-body-bg);
+        }
+
+        .auth-input {
+            position: relative;
+        }
+
+            .auth-input .form-control {
+                padding-right: 44px;
+                padding-left: 44px;
+                height: 50px;
+                border-radius: .75rem;
+            }
+
+                .auth-input .form-control:focus {
+                    border-color: #1470b8;
+                    box-shadow: 0 0 0 .2rem rgba(20, 112, 184, 0.15);
+                }
+
+            .auth-input .auth-input-icon {
+                position: absolute;
+                top: 50%;
+                right: 16px;
+                transform: translateY(-50%);
+                color: #8a94a6;
+                font-size: 18px;
+                pointer-events: none;
+            }
+
+            .auth-input .auth-toggle-password {
+                position: absolute;
+                top: 50%;
+                left: 16px;
+                transform: translateY(-50%);
+                color: #8a94a6;
+                font-size: 18px;
+                cursor: pointer;
+                background: none;
+                border: none;
+                padding: 0;
+            }
+
+        .btn-auth-submit {
+            height: 50px;
+            border-radius: .75rem;
+            border: none;
+            background: linear-gradient(135deg, #1470b8 0%, #0d4f85 100%);
+            font-weight: 600;
+            transition: filter .15s ease, transform .15s ease;
+        }
+
+            .btn-auth-submit:hover {
+                filter: brightness(1.08);
+                transform: translateY(-1px);
+            }
+
+            .btn-auth-submit:active {
+                transform: translateY(0);
+            }
+
+        .indicator-progress {
+            display: none;
+        }
+
+        [data-kt-indicator="on"] .indicator-label {
+            display: none;
+        }
+
+        [data-kt-indicator="on"] .indicator-progress {
+            display: inline-block;
+        }
+
+        @@media (max-width: 991.98px) {
+            .auth-brand-panel {
+                display: none;
+            }
+        }
+
+        /* -------- Error alert -------- */
         .alert-error {
             display: flex;
             align-items: flex-start;
             gap: 10px;
-            background: rgba(220, 38, 38, 0.15);
-            border: 1px solid rgba(220, 38, 38, 0.4);
-            border-radius: 8px;
+            background: rgba(220, 38, 38, 0.1);
+            border: 1px solid rgba(220, 38, 38, 0.3);
+            border-radius: .75rem;
             padding: 12px 14px;
-            margin-bottom: 1rem;
-            color: #ff6b6b;
+            margin-bottom: 1.5rem;
+            color: #d9364f;
             font-size: 14px;
             animation: slideDown 0.35s cubic-bezier(0.22, 1, 0.36, 1);
         }
@@ -39,7 +195,7 @@
 
         .progress-bar-err {
             height: 3px;
-            background: rgba(220, 38, 38, 0.5);
+            background: rgba(220, 38, 38, 0.4);
             border-radius: 2px;
             margin-top: 8px;
             animation: shrink 4s linear forwards;
@@ -49,19 +205,32 @@
         .alert-close-btn {
             background: none;
             border: none;
-            color: #ff6b6b;
+            color: #d9364f;
             cursor: pointer;
             padding: 0;
             font-size: 16px;
             line-height: 1;
             margin-right: auto;
         }
-       
-       
+
+        @@keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @@keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; transform: translateY(-6px); }
+        }
+
+        @@keyframes shrink {
+            from { transform: scaleX(1); }
+            to { transform: scaleX(0); }
+        }
     </style>
 </head>
 
-<body id="kt_body" class="app-blank bgi-size-cover bgi-attachment-fixed bgi-position-center bgi-no-repeat">
+<body id="kt_body">
     <script>
         var defaultThemeMode = "light";
         var themeMode;
@@ -78,71 +247,92 @@
         }
     </script>
 
-    <div class="d-flex flex-column flex-root align-items-center justify-content-center" style="min-height: 100vh;">
-        <style>
-            body {
-                background-image: url('/media/auth/bg4.jpg')
-            }
+    <div class="d-flex flex-column align-items-center justify-content-center" style="min-height: 100vh; padding: 24px;">
 
-            [data-bs-theme="dark"] body {
-                background-image: url('/media/auth/bg4.jpg');
-            }
-        </style>
+        <div class="auth-card d-flex flex-row bg-body">
 
-        <div class="d-flex flex-column flex-column-fluid flex-lg-row w-100">
+            <!-- Brand panel -->
+            <div class="auth-brand-panel d-none d-lg-flex flex-column justify-content-between p-10">
+                <i class="ki-outline ki-abstract-41 auth-brand-watermark"></i>
 
-            <!-- Login Form -->
-            <div class="d-flex flex-column-fluid flex-lg-row-auto justify-content-center p-12 p-lg-20">
-                <div class="bg-body d-flex flex-column align-items-stretch flex-center rounded-4 w-md-600px p-20">
-                    <div class="d-flex flex-center flex-column flex-column-fluid px-lg-10 pb-15 pb-lg-20">
-
-                        <form class="form w-100" method="post" asp-action="Login" asp-controller="Account" novalidate="novalidate" style="margin-top: 70px;">
-
-                            <!-- Error Alert -->
-                            @if (ViewBag.Error != null)
-                            {
-                                <div class="alert-error" id="errorBox">
-                                    <i class="fa fa-exclamation-circle" style="margin-top:2px; flex-shrink:0;"></i>
-                                    <div style="flex:1">
-                                        <span>@ViewBag.Error</span>
-                                        <div class="progress-bar-err"></div>
-                                    </div>
-                                    <button type="button" class="alert-close-btn" onclick="closeAlert()">
-                                        <i class="fa fa-times"></i>
-                                    </button>
-                                </div>
-                            }
-
-                            <!-- Heading -->
-                            <div class="text-center mb-11">
-                                <h1 class="text-dark fw-bolder mb-3">ورود</h1>
-                                <div class="text-gray-500 fw-semibold fs-6">به سیستم تولید خوش آمدید</div>
-                            </div>
-
-
-                            <!-- Username -->
-                            <div class="fv-row mb-8">
-                                <input type="text" name="username" placeholder="نام کاربری" autocomplete="off" class="form-control bg-transparent" required />
-                            </div>
-
-                            <!-- Password -->
-                            <div class="fv-row mb-3">
-                                <input type="password" id="password-field" name="password" placeholder="کلمه عبور" autocomplete="off" class="form-control bg-transparent" required />
-                            </div>
-
-
-                            <!-- Submit Button -->
-                            <div class="d-grid mb-10">
-                                <button type="submit" id="kt_sign_in_submit" class="btn btn-primary">
-                                    <span class="indicator-label">ورود</span>
-                                    <span class="indicator-progress">
-                                        در حال ورود...
-                                        <span class="spinner-border spinner-border-sm align-middle ms-2"></span>
-                                    </span>
-                                </button>
-                            </div>
-                        </form>
+                <div style="position: relative;">
+                    <div class="auth-brand-badge mb-6">
+                        <i class="ki-outline ki-element-plus"></i>
                     </div>
+                    <h2 class="text-white fw-bold mb-3">سیستم پایش تولید</h2>
+                    <div class="text-white opacity-75 fs-6">
+                        مدیریت یکپارچه‌ی سفارش‌ها، رسیدهای تولید و ضایعات، و گزارش‌های لحظه‌ای خط تولید
+                    </div>
+                </div>
+
+                <div class="d-flex flex-column gap-4" style="position: relative;">
+                    <div class="auth-feature-item">
+                        <span class="auth-feature-icon"><i class="ki-outline ki-basket"></i></span>
+                        <span class="fw-semibold">ثبت و پیگیری سفارش‌ها</span>
+                    </div>
+                    <div class="auth-feature-item">
+                        <span class="auth-feature-icon"><i class="ki-outline ki-document"></i></span>
+                        <span class="fw-semibold">مدیریت رسید تولید و ضایعات</span>
+                    </div>
+                    <div class="auth-feature-item">
+                        <span class="auth-feature-icon"><i class="ki-outline ki-chart-simple"></i></span>
+                        <span class="fw-semibold">گزارش‌های لحظه‌ای تولید</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form panel -->
+            <div class="auth-form-panel d-flex flex-column justify-content-center p-10 p-lg-15">
+                <div class="mb-10 text-center text-lg-start">
+                    <div class="auth-brand-badge d-lg-none mx-auto mb-5" style="background:#1470b8; color:#fff;">
+                        <i class="ki-outline ki-element-plus"></i>
+                    </div>
+                    <h1 class="fw-bolder mb-2">ورود به سامانه</h1>
+                    <div class="text-muted fs-6">برای ادامه، نام کاربری و رمز عبور خود را وارد کنید</div>
+                </div>
+
+                @if (ViewBag.Error != null)
+                {
+                    <div class="alert-error" id="errorBox">
+                        <i class="fa fa-exclamation-circle" style="margin-top:2px; flex-shrink:0;"></i>
+                        <div style="flex:1">
+                            <span>@ViewBag.Error</span>
+                            <div class="progress-bar-err"></div>
+                        </div>
+                        <button type="button" class="alert-close-btn" onclick="closeAlert()">
+                            <i class="fa fa-times"></i>
+                        </button>
+                    </div>
+                }
+
+                <form method="post" asp-action="Login" asp-controller="Account" id="kt_login_form">
+
+                    <div class="auth-input mb-5">
+                        <input type="text" name="username" placeholder="نام کاربری" autocomplete="off" class="form-control" required autofocus />
+                        <i class="ki-outline ki-user auth-input-icon"></i>
+                    </div>
+
+                    <div class="auth-input mb-3">
+                        <input type="password" id="password-field" name="password" placeholder="رمز عبور" autocomplete="off" class="form-control" required />
+                        <i class="ki-outline ki-lock-2 auth-input-icon"></i>
+                        <button type="button" class="auth-toggle-password" id="togglePassword" aria-label="نمایش رمز عبور">
+                            <i class="ki-outline ki-eye-slash"></i>
+                        </button>
+                    </div>
+
+                    <div class="d-grid mt-8">
+                        <button type="submit" id="kt_sign_in_submit" class="btn btn-auth-submit text-white">
+                            <span class="indicator-label">ورود</span>
+                            <span class="indicator-progress">
+                                در حال ورود...
+                                <span class="spinner-border spinner-border-sm align-middle ms-2"></span>
+                            </span>
+                        </button>
+                    </div>
+                </form>
+
+                <div class="text-center text-muted fs-8 mt-10">
+                    &copy; @DateTime.Now.Year سیستم پایش تولید - تمامی حقوق محفوظ است
                 </div>
             </div>
         </div>
@@ -153,7 +343,7 @@
     <script src="~/js/scripts.bundle.js"></script>
 
     <script>
-        // Error Alert Handling
+        // Error alert auto-dismiss
         (function () {
             var box = document.getElementById('errorBox');
             if (!box) return;
@@ -166,21 +356,37 @@
             };
         })();
 
-        // Password Toggle 
-        document.querySelectorAll('.toggle-password').forEach(icon => {
-            icon.addEventListener('click', function () {
-                const input = document.querySelector(this.getAttribute('toggle'));
-                if (input.type === "password") {
-                    input.type = "text";
-                    this.classList.remove('fa-eye');
-                    this.classList.add('fa-eye-slash');
+        // Password visibility toggle
+        (function () {
+            var toggle = document.getElementById('togglePassword');
+            var input = document.getElementById('password-field');
+            if (!toggle || !input) return;
+
+            toggle.addEventListener('click', function () {
+                var icon = toggle.querySelector('i');
+                if (input.type === 'password') {
+                    input.type = 'text';
+                    icon.classList.remove('ki-eye-slash');
+                    icon.classList.add('ki-eye');
                 } else {
-                    input.type = "password";
-                    this.classList.remove('fa-eye-slash');
-                    this.classList.add('fa-eye');
+                    input.type = 'password';
+                    icon.classList.remove('ki-eye');
+                    icon.classList.add('ki-eye-slash');
                 }
             });
-        });
+        })();
+
+        // Submit button loading indicator
+        (function () {
+            var form = document.getElementById('kt_login_form');
+            var submitBtn = document.getElementById('kt_sign_in_submit');
+            if (!form || !submitBtn) return;
+
+            form.addEventListener('submit', function () {
+                submitBtn.setAttribute('data-kt-indicator', 'on');
+                submitBtn.disabled = true;
+            });
+        })();
     </script>
 </body>
 </html>
