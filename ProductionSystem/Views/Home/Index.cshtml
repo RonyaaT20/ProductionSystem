@@ -1,10 +1,98 @@
-﻿@{
+@using ProductionSystem.Application.IServices
+@using ProductionSystem.Application.Security
+@using ProductionSystem.Domain.DTOs
+@using ProductionSystem.Domain.Utilities
+@inject IPermissionService PermissionService
+@{
     ViewData["Title"] = "Home Page";
     ViewData["Breadcrumb"] = new List<(string, string)>
     {
         ("خانه", "/Home/Index"),
         ("داشبورد", "#")
     };
+
+    var userId = User.GetUserId();
+    bool Can(RoleChecker permission) => PermissionService.CheckPermission(permission.ToValue(), userId);
+
+    var basicInfoLinks = new List<(RoleChecker Permission, string Icon, string Url)>
+    {
+        (RoleChecker.User, "ki-outline ki-profile-circle", "/User/Index"),
+        (RoleChecker.Role, "ki-outline ki-shield-tick", "/Role/Index"),
+        (RoleChecker.Unit, "ki-outline ki-abstract-26", "/Unit/Index"),
+        (RoleChecker.Personnel, "ki-outline ki-people", "/Personnel/Index"),
+        (RoleChecker.Customer, "ki-outline ki-address-book", "/Customer/Index"),
+        (RoleChecker.Parameter, "ki-outline ki-setting-2", "/Parameter/Index"),
+        (RoleChecker.Product, "ki-outline ki-package", "/Product/Index"),
+    };
+
+    var productionLinks = new List<(RoleChecker Permission, string Icon, string Url)>
+    {
+        (RoleChecker.Order, "ki-outline ki-basket", "/Order/Index"),
+        (RoleChecker.ProductionReceipt, "ki-outline ki-document", "/ProductionReceipt/Index"),
+        (RoleChecker.Report, "ki-outline ki-chart-simple", "/Report/Production"),
+    };
 }
 
-<p style="margin-top: 250px; margin-right:300px; font-weight:bold; font-size:80px; color:darkgray">نرم افزار پایش تولید</p>
+<div class="card mb-6" style="background: linear-gradient(135deg, #1470b8 0%, #0d4f85 100%); border: none;">
+    <div class="card-body d-flex align-items-center justify-content-between flex-wrap gap-4 py-8">
+        <div>
+            <h2 class="text-white fw-bold mb-2">نرم افزار پایش تولید</h2>
+            <div class="text-white opacity-75 fs-6">خوش آمدید، @(User.FindFirst("FullName")?.Value ?? User.Identity!.Name)</div>
+        </div>
+        <i class="ki-outline ki-abstract-41 text-white opacity-25" style="font-size:64px;"></i>
+    </div>
+</div>
+
+@if (basicInfoLinks.Any(l => Can(l.Permission)))
+{
+    <h5 class="fw-bold text-muted mb-3">@RoleChecker.BasicInformation.ToDisplay()</h5>
+    <div class="row g-4 mb-6">
+        @foreach (var link in basicInfoLinks)
+        {
+            if (!Can(link.Permission)) continue;
+
+            <div class="col-md-3 col-sm-4 col-6">
+                <a href="@link.Url" class="card h-100 text-decoration-none shadow-sm hoverable">
+                    <div class="card-body d-flex flex-column align-items-center justify-content-center text-center py-6">
+                        <i class="@link.Icon fs-1 text-primary mb-2"></i>
+                        <span class="fw-semibold text-gray-800">@link.Permission.ToDisplay()</span>
+                    </div>
+                </a>
+            </div>
+        }
+    </div>
+}
+
+@if (productionLinks.Any(l => Can(l.Permission)))
+{
+    <h5 class="fw-bold text-muted mb-3">@RoleChecker.Production.ToDisplay()</h5>
+    <div class="row g-4 mb-6">
+        @foreach (var link in productionLinks)
+        {
+            if (!Can(link.Permission)) continue;
+
+            <div class="col-md-3 col-sm-4 col-6">
+                <a href="@link.Url" class="card h-100 text-decoration-none shadow-sm hoverable">
+                    <div class="card-body d-flex flex-column align-items-center justify-content-center text-center py-6">
+                        <i class="@link.Icon fs-1 text-primary mb-2"></i>
+                        <span class="fw-semibold text-gray-800">@link.Permission.ToDisplay()</span>
+                    </div>
+                </a>
+            </div>
+        }
+    </div>
+}
+
+@section Scripts
+{
+    <style>
+        .hoverable {
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .hoverable:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1) !important;
+        }
+    </style>
+}

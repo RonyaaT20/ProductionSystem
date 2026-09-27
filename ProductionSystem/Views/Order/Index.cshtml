@@ -26,6 +26,7 @@
     }
 </div>
 
+<div class="table-responsive">
 <table class="table table-bordered table-hover" id="OrderTable">
     <thead>
         <tr>
@@ -78,6 +79,7 @@
         }
     </tbody>
 </table>
+</div>
 
 <div class="modal fade" id="itemModal" tabindex="-1">
     <div class="modal-dialog">
@@ -127,8 +129,6 @@
         });
 
         var modal = new bootstrap.Modal(document.getElementById('itemModal'));
-        var deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
-        var deleteId = 0;
 
         // ========== توابع اعتبارسنجی ==========
         function showError(elementId, message) {

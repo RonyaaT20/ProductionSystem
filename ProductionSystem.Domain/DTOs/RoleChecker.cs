@@ -81,5 +81,10 @@ namespace ProductionSystem.Domain.DTOs
         [Display(Name = "ویرایش مقادیر")] EditParameterValue = 44,
         [Display(Name = "حذف مقادیر")] DeleteParameterValue = 45,
 
+        //WasteReceipt
+        [Display(Name = "رسید ضایعات")] WasteReceipt = 46,
+        [Display(Name = "افزودن رسید ضایعات")] CreateWasteReceipt = 47,
+        [Display(Name = "حذف رسید ضایعات")] DeleteWasteReceipt = 48,
+
     }
 }

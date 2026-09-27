@@ -17,6 +17,7 @@
     <button class="btn btn-primary" onclick="openCreateModal()">+ ثبت رسید ضایعات</button>
 </div>
 
+<div class="table-responsive">
 <table class="table table-bordered table-hover" id="WasteReceiptTable">
     <thead>
     <tr>
@@ -54,9 +55,11 @@
     }
     </tbody>
 </table>
+</div>
 
+<!-- Modal ثبت -->
 <div class="modal fade" id="itemModal" tabindex="-1">
-    @* <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">ثبت رسید ضایعات</h5>
@@ -65,7 +68,9 @@
             <div class="modal-body">
                 <div class="mb-3">
                     <label class="form-label">سفارش</label>
-                    <select id="itemOrderId" class="form-select" onchange="loadOrderInfo(this.value)"></select>
+                    <select id="itemOrderId" class="form-select" onchange="loadOrderInfo(this.value)">
+                        <option value="">انتخاب کنید</option>
+                    </select>
                 </div>
                 <div class="mb-3">
                     <label class="form-label">کالا (خودکار)</label>
@@ -99,74 +104,6 @@
                 <button type="button" class="btn btn-primary" onclick="saveItem()">ثبت</button>
             </div>
         </div>
-    </div> *@
-    <!-- Modal ثبت -->
-    <div class="modal fade" id="itemModal" tabindex="-1">
-        <div class="modal-dialog modal-xl">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">ثبت رسید ضایعات</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label">سفارش (اختیاری)</label>
-                                <select id="itemOrderId" class="form-select" onchange="loadOrderInfo(this.value)">
-                                    <option value="">بدون سفارش</option>
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">کالا</label>
-                                <input type="hidden" id="itemProductId" />
-                                <select id="itemProductSelect" class="form-select" onchange="loadProductParams(this.value)">
-                                    <option value="">انتخاب کنید</option>
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">مقدار ضایعات</label>
-                                <input type="number" id="itemQuantity" step="0.001" class="form-control" />
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">پرسنل</label>
-                                <select id="itemPersonnelSelect" class="form-select" onchange="addPersonnel(this)">
-                                    <option value="">انتخاب پرسنل</option>
-                                </select>
-                                <div id="selectedPersonnels" class="mt-2 d-flex flex-wrap gap-1"></div>
-                                <input type="hidden" id="itemPersonnelIds" value="[]" />
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div id="parametersContainer">
-                                <label class="form-label">پارامترها</label>
-                                <div id="parametersList"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">انصراف</button>
-                    <button type="button" class="btn btn-primary" onclick="saveItem()">ثبت و چاپ</button>
-                </div>
-            </div>
-        </div>
-    </div>
-<!-- Modal حذف -->
-<div class="modal fade" id="deleteModal" tabindex="-1">
-        <div class="modal-dialog modal-sm">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">تایید حذف</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">آیا از حذف این رسید مطمئن هستید؟</div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">انصراف</button>
-                    <button type="button" class="btn btn-danger" id="confirmDelete">حذف</button>
-                </div>
-            </div>
-        </div>
     </div>
 </div>
 
@@ -189,8 +126,6 @@
                 }
             });
         });
-        // var deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
-        // var deleteId = 0;
         var modal;
 
         $(document).ready(function () {
@@ -200,14 +135,15 @@
         });
 
         function openCreateModal() {
-            selectedPersonnelList = [];
-            selectedParameters = {};
+            document.getElementById('itemOrderId').value = '';
+            document.getElementById('itemProductId').value = '';
+            document.getElementById('itemProductTitle').value = '';
+            document.getElementById('itemParameterId').value = '';
+            document.getElementById('itemParameterTitle').value = '';
+            document.getElementById('itemValueId').innerHTML = '<option value="">بدون مقدار</option>';
             document.getElementById('itemQuantity').value = '';
-            document.getElementById('selectedPersonnels').innerHTML = '';
-            document.getElementById('parametersList').innerHTML = '';
-            document.getElementById('itemPersonnelIds').value = '[]';
+            document.getElementById('itemPersonnelIds').innerHTML = '';
             loadOrders();
-            loadProducts();
             loadPersonnels();
             modal.show();
         }
@@ -225,8 +161,8 @@
 
         function loadPersonnels() {
             $.get('/Personnel/GetAllJson', function (data) {
-                var sel = document.getElementById('itemPersonnelSelect');
-                sel.innerHTML = '<option value="">انتخاب پرسنل</option>';
+                var sel = document.getElementById('itemPersonnelIds');
+                sel.innerHTML = '';
                 data.forEach(function (p) {
                     var opt = document.createElement('option');
                     opt.value = p.id; opt.text = p.title;
@@ -235,58 +171,34 @@
             });
         }
 
-        function addPersonnel(sel) {
-            var id = parseInt(sel.value);
-            var title = sel.options[sel.selectedIndex].text;
-            if (!id) return;
-            if (selectedPersonnelList.find(p => p.id == id)) return;
-
-            selectedPersonnelList.push({ id: id, title: title });
-            renderPersonnels();
-            sel.value = '';
-        }
-
-        function removePersonnel(id) {
-            selectedPersonnelList = selectedPersonnelList.filter(p => p.id != id);
-            renderPersonnels();
-        }
-
-        function renderPersonnels() {
-            var container = document.getElementById('selectedPersonnels');
-            container.innerHTML = '';
-            selectedPersonnelList.forEach(function (p) {
-                var span = document.createElement('span');
-                span.className = 'badge bg-primary d-flex align-items-center gap-1 p-2';
-                span.innerHTML = p.title + ' <span style="cursor:pointer" onclick="removePersonnel(' + p.id + ')">×</span>';
-                container.appendChild(span);
-            });
-            document.getElementById('itemPersonnelIds').value = JSON.stringify(selectedPersonnelList.map(p => p.id));
-        }
-
         function loadOrderInfo(orderId) {
-            if (!orderId) return;
-            $.get('/WasteReceipt/GetProductByOrder?orderId=' + orderId, function (data) {
-                if (data) {
-                    document.getElementById('itemProductId').value = data.productId;
-                    document.getElementById('itemProductTitle').value = data.productTitle;
-                    document.getElementById('itemParameterId').value = data.parameterId;
-                    document.getElementById('itemParameterTitle').value = data.parameterTitle || '';
-                    loadValues(data.parameterId, data.parameterValueId);
-                }
-            });
-        }
+            document.getElementById('itemProductId').value = '';
+            document.getElementById('itemProductTitle').value = '';
+            document.getElementById('itemParameterId').value = '';
+            document.getElementById('itemParameterTitle').value = '';
+            document.getElementById('itemValueId').innerHTML = '<option value="">بدون مقدار</option>';
 
-        function loadValues(parameterId, selectedId) {
-            var sel = document.getElementById('itemValueId');
-            sel.innerHTML = '<option value="">بدون مقدار</option>';
-            if (!parameterId) return;
-            $.get('/Parameter/GetValues?parameterId=' + parameterId, function (data) {
-                data.forEach(function (v) {
-                    var opt = document.createElement('option');
-                    opt.value = v.id; opt.text = v.title;
-                    if (selectedId && v.id == selectedId) opt.selected = true;
-                    sel.appendChild(opt);
-                });
+            if (!orderId) return;
+
+            $.get('/WasteReceipt/GetProductByOrder?orderId=' + orderId, function (data) {
+                if (!data) return;
+
+                document.getElementById('itemProductId').value = data.productId;
+                document.getElementById('itemProductTitle').value = data.productTitle || '';
+
+                var firstParam = (data.parameters && data.parameters.length > 0) ? data.parameters[0] : null;
+                document.getElementById('itemParameterId').value = firstParam ? firstParam.parameterId : '';
+                document.getElementById('itemParameterTitle').value = firstParam ? firstParam.parameterTitle : 'بدون پارامتر';
+
+                var sel = document.getElementById('itemValueId');
+                sel.innerHTML = '<option value="">بدون مقدار</option>';
+                if (firstParam && firstParam.values) {
+                    firstParam.values.forEach(function (v) {
+                        var opt = document.createElement('option');
+                        opt.value = v.id; opt.text = v.title;
+                        sel.appendChild(opt);
+                    });
+                }
             });
         }
 
@@ -333,13 +245,5 @@
                 }
             });
         }
-
-
-        document.getElementById('confirmDelete').addEventListener('click', function () {
-            $.post('/WasteReceipt/DeleteAjax', { id: deleteId }, function (result) {
-                if (result.success) { deleteModal.hide(); $('.ajax-link[href="/WasteReceipt/Index"]').click(); }
-                else alert(result.message);
-            });
-        });
     </script>
 }

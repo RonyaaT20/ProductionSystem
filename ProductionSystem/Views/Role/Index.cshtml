@@ -26,6 +26,7 @@
 
 </div>
 
+<div class="table-responsive">
 <table class="table table-bordered table-hover" id="RoleTable">
     <thead>
     <tr>
@@ -72,6 +73,7 @@
     }
     </tbody>
 </table>
+</div>
 <div class="modal fade" id="itemModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -394,6 +396,32 @@
                                 <input class="form-check-input crud-check" type="checkbox"
                                        value="@RoleChecker.DeleteProductionReceipt.ToValue()" id="crud_ProductionReceipt_d" data-parent="ProductionReceipt">
                                 <label class="form-check-label" for="crud_ProductionReceipt_d">حذف</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    @* WasteReceipt *@
+                    <div class="mb-2 border rounded p-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <input class="form-check-input perm-check" type="checkbox"
+                                   value="@RoleChecker.WasteReceipt.ToValue()" id="perm_WasteReceipt"
+                                   onchange="onMainPermChange('WasteReceipt', this)">
+                            <label class="form-check-label fw-bold" for="perm_WasteReceipt">رسید ضایعات</label>
+                            <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1 ms-auto"
+                                    onclick="toggleCrud('WasteReceipt', this)">
+                                +
+                            </button>
+                        </div>
+                        <div id="crud_WasteReceipt" class="ms-4 mt-2" style="display:none">
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input crud-check" type="checkbox"
+                                       value="@RoleChecker.CreateWasteReceipt.ToValue()" id="crud_WasteReceipt_c" data-parent="WasteReceipt">
+                                <label class="form-check-label" for="crud_WasteReceipt_c">افزودن</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input crud-check" type="checkbox"
+                                       value="@RoleChecker.DeleteWasteReceipt.ToValue()" id="crud_WasteReceipt_d" data-parent="WasteReceipt">
+                                <label class="form-check-label" for="crud_WasteReceipt_d">حذف</label>
                             </div>
                         </div>
                     </div>

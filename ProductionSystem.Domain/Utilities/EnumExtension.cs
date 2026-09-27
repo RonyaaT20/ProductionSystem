@@ -19,10 +19,10 @@ namespace ProductionSystem.Domain.Utilities
             {
                 var attribute = value?.GetType().GetField(value.ToString()).GetCustomAttributes(false).FirstOrDefault();
 
-                if (attribute != null)
+                if (attribute == null)
                     return value?.ToString();
 
-                var propValue = attribute?.GetType().GetProperty("Name").GetValue(attribute, null);
+                var propValue = attribute.GetType().GetProperty("Name").GetValue(attribute, null);
                 return propValue?.ToString();
             }
             catch (Exception e)

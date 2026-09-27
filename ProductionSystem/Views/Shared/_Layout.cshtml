@@ -19,39 +19,49 @@
     <link href="~/css/persian-datepicker.css" rel="stylesheet" type="text/css" />
     <link href="~/css/persian-datepicker.min.css" rel="stylesheet" type="text/css" />
     <style>
-        /* استایل برای منوی فعال در sidebar-submenu (سایدبار چپ) */
-        #sidebar-submenu .menu-link.active {
+        /* استایل برای منوی فعال (سایدبار و aside) - حالت روشن: پس‌زمینه آبی کم‌رنگ + متن آبی پررنگ خوانا */
+        #sidebar-submenu .menu-link.active,
+        .menu-item.active > .menu-link,
+        .ajax-link.active {
             background-color: #1470b82e !important;
-            color: white !important;
+            color: #1470b8 !important;
             border-radius: 8px;
         }
 
-            #sidebar-submenu .menu-link.active .menu-bullet .bullet {
+            #sidebar-submenu .menu-link.active .menu-bullet .bullet,
+            .menu-item.active .menu-link .menu-bullet .bullet {
+                background-color: #1470b8 !important;
+            }
+
+            #sidebar-submenu .menu-link.active .menu-title,
+            .menu-item.active .menu-link .menu-title {
+                color: #1470b8 !important;
+            }
+
+            .menu-item.active .menu-link .menu-icon i {
+                color: #1470b8 !important;
+            }
+
+        /* حالت تیره: همون پس‌زمینه، ولی متن سفید چون روی پس‌زمینه تیره‌ی سایدبار خواناست */
+        [data-bs-theme="dark"] #sidebar-submenu .menu-link.active,
+        [data-bs-theme="dark"] .menu-item.active > .menu-link,
+        [data-bs-theme="dark"] .ajax-link.active {
+            color: white !important;
+        }
+
+            [data-bs-theme="dark"] #sidebar-submenu .menu-link.active .menu-bullet .bullet,
+            [data-bs-theme="dark"] .menu-item.active .menu-link .menu-bullet .bullet {
                 background-color: white !important;
             }
 
-            #sidebar-submenu .menu-link.active .menu-title {
+            [data-bs-theme="dark"] #sidebar-submenu .menu-link.active .menu-title,
+            [data-bs-theme="dark"] .menu-item.active .menu-link .menu-title {
                 color: white !important;
             }
 
-        /* استایل برای منوی اصلی aside (راست) */
-        .menu-item.active > .menu-link {
-            background-color: #1470b82e !important;
-            color: white !important;
-            border-radius: 8px;
-        }
-
-        .menu-item.active .menu-link .menu-title {
-            color: white !important;
-        }
-
-        .menu-item.active .menu-link .menu-bullet .bullet {
-            background-color: white !important;
-        }
-
-        .menu-item.active .menu-link .menu-icon i {
-            color: white !important;
-        }
+            [data-bs-theme="dark"] .menu-item.active .menu-link .menu-icon i {
+                color: white !important;
+            }
 
         /* استایل برای زیرمنوی باز شده */
         .menu-sub-accordion.show {
@@ -61,13 +71,7 @@
         /* استایل برای لینک‌های active در منوی اصلی */
         .menu-link.active {
             background-color: #e8f0fe !important;
-            color: #1470b82e !important;
-            border-radius: 8px;
-        }
-
-        .ajax-link.active {
-            background-color: #1470b82e !important;
-            color: white !important;
+            color: #1470b8 !important;
             border-radius: 8px;
         }
 
@@ -87,6 +91,30 @@
             color: red;
             font-weight: bold;
         }
+
+        /* عرض ثابت سایدبار/aside فقط در دسکتاپ - زیر این سایز، رفتار کشویی (drawer) خود Metronic حاکمه */
+        @@media (min-width: 992px) {
+            #kt_app_sidebar {
+                width: 245px;
+            }
+
+            #kt_app_aside {
+                width: 250px !important;
+            }
+        }
+
+        /* بدون این، آیتم‌های هدر به‌خاطر حداقل عرض پیش‌فرض فلکس‌باکس اجازه جمع‌شدن نمی‌دن و کل صفحه رو باعث اسکرول افقی می‌کنن */
+        .app-header-wrapper {
+            min-width: 0;
+        }
+
+        /* جلوگیری از سرریز افقی صفحه روی موبایل/تبلت */
+        @@media (max-width: 991.98px) {
+            .container, .container-fluid {
+                padding-left: 12px;
+                padding-right: 12px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -105,9 +133,9 @@
                 </div>
                 <div class="app-header-wrapper">
                     <div class="app-container container-fluid">
-                        <div class="app-navbar flex-shrink-0">
+                        <div class="app-navbar flex-shrink-0 ms-auto">
                             <!--begin::User menu-->
-                            <div class="app-navbar-item ms-1 ms-lg-3 me-2 me-lg-6" style="margin-right: 1200px !important" id="kt_header_user_menu_toggle">
+                            <div class="app-navbar-item ms-1 ms-lg-3 me-2 me-lg-6" id="kt_header_user_menu_toggle">
                                 <div class="cursor-pointer symbol symbol-35px symbol-md-40px" data-kt-menu-trigger="{default: 'click', lg: 'hover'}" data-kt-menu-attach="parent" data-kt-menu-placement="bottom-end">
                                     <img class="symbol symbol-circle symbol-35px symbol-md-40px" src="~/media/avatars/blank.png" alt="user">
                                 </div>
@@ -199,7 +227,7 @@
             <div class="app-wrapper d-flex" id="kt_app_wrapper">
 
                 <!--begin::Sidebar (چپ - داشبورد)-->
-                <div id="kt_app_sidebar" class="app-sidebar flex-column" style="width: 245px" data-kt-drawer="true" data-kt-drawer-name="app-sidebar" data-kt-drawer-activate="{default: true, lg: false}" data-kt-drawer-overlay="true" data-kt-drawer-width="auto" data-kt-drawer-direction="start" data-kt-drawer-toggle="#kt_app_sidebar_mobile_toggle">
+                <div id="kt_app_sidebar" class="app-sidebar flex-column" data-kt-drawer="true" data-kt-drawer-name="app-sidebar" data-kt-drawer-activate="{default: true, lg: false}" data-kt-drawer-overlay="true" data-kt-drawer-width="auto" data-kt-drawer-direction="start" data-kt-drawer-toggle="#kt_app_sidebar_mobile_toggle">
                     <div id="kt_app_sidebar_wrapper" class="app-sidebar-wrapper hover-scroll-y my-2" data-kt-scroll="true" data-kt-scroll-activate="true" data-kt-scroll-height="auto" data-kt-scroll-offset="5px">
                         <div id="kt_app_sidebar_menu" class="menu menu-sub-indention menu-rounded menu-column fw-semibold fs-6 py-4 py-lg-6 px-2 px-lg-6" data-kt-menu="true">
                             <div class="menu-item">
@@ -254,7 +282,7 @@
                 </div>
                 <!--end::Main-->
                 <!--begin::Aside (راست - منوی اصلی)-->
-                <div id="kt_app_aside" class="app-aside flex-column drawer drawer-start" data-kt-drawer="true" data-kt-drawer-name="app-aside" data-kt-drawer-activate="true" data-kt-drawer-overlay="true" data-kt-drawer-width="auto" data-kt-drawer-direction="start" data-kt-drawer-toggle="#kt_app_aside_toggle" style="width: 250px !important;">
+                <div id="kt_app_aside" class="app-aside flex-column drawer drawer-start" data-kt-drawer="true" data-kt-drawer-name="app-aside" data-kt-drawer-activate="true" data-kt-drawer-overlay="true" data-kt-drawer-width="auto" data-kt-drawer-direction="start" data-kt-drawer-toggle="#kt_app_aside_toggle">
                     <div id="kt_app_aside_wrapper" class="app-aside-wrapper hover-scroll-y my-4" data-kt-scroll="true" data-kt-scroll-activate="true" data-kt-scroll-height="auto" data-kt-scroll-offset="5px">
                         <div id="kt_app_aside_menu" class="menu menu-sub-indention menu-rounded menu-column fw-semibold fs-6 px-2" data-kt-menu="true">
 
@@ -276,10 +304,10 @@
                                 bool hasProduct = PermissionService.CheckPermission(RoleChecker.Product.ToValue(), User.GetUserId());
                                 bool hasOrder = PermissionService.CheckPermission(RoleChecker.Order.ToValue(), User.GetUserId());
                                 bool hasProductionReceipt = PermissionService.CheckPermission(RoleChecker.ProductionReceipt.ToValue(), User.GetUserId());
-                                // bool hasWasteReceipt = perms.Contains("WasteReceipt");
+                                bool hasWasteReceipt = PermissionService.CheckPermission(RoleChecker.WasteReceipt.ToValue(), User.GetUserId());
                                 bool hasReport = PermissionService.CheckPermission(RoleChecker.Report.ToValue(), User.GetUserId());
                                 bool hasAnyBase = hasUser || hasRole || hasUnit || hasPersonnel || hasCustomer || hasParameter || hasProduct;
-                                bool hasAnyProd = hasOrder || hasProductionReceipt || hasReport;
+                                bool hasAnyProd = hasOrder || hasProductionReceipt || hasWasteReceipt || hasReport;
                             }
 
                             @if (hasAnyBase)
@@ -387,7 +415,7 @@
                                                 </a>
                                             </div>
                                         }
-                                        @* @if (hasWasteReceipt)
+                                        @if (hasWasteReceipt)
                                         {
                                             <div class="menu-item" >
                                                 <a class="menu-link ajax-link" href="/WasteReceipt/Index" data-section="prod">
@@ -395,7 +423,7 @@
                                                     <span class="menu-title">رسید ضایعات</span>
                                                 </a>
                                             </div>
-                                        } *@
+                                        }
                                         @if (hasReport)
                                         {
                                             <div class="menu-item">
@@ -678,13 +706,23 @@
             setActiveSidebarMenu();
             openMainMenuBySection();
             initDatePickers();
+            initTableDropdowns();
 
             // برای لینک‌هایی که با ajax لود می‌شوند
             $(document).ajaxComplete(function() {
                 setActiveSidebarMenu();
                 initDatePickers();
+                initTableDropdowns();
             });
         });
+
+        // دراپ‌داون عملیات داخل جدول‌های table-responsive رو با استراتژی fixed پوزیشن می‌ده
+        // تا با overflow خود جدول کات نشه و لازم نباشه برای دیدنش جدول رو اسکرول کرد
+        function initTableDropdowns() {
+            document.querySelectorAll('.table-responsive [data-bs-toggle="dropdown"]').forEach(function (el) {
+                bootstrap.Dropdown.getOrCreateInstance(el, { popperConfig: { strategy: 'fixed' } });
+            });
+        }
     </script>
 
     @await RenderSectionAsync("Scripts", required: false)

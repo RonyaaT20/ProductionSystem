@@ -25,6 +25,7 @@
 
 </div>
 
+<div class="table-responsive">
 <table class="table table-bordered table-hover" id="PersonnelTable">
     <thead>
     <tr>
@@ -73,6 +74,7 @@
     }
     </tbody>
 </table>
+</div>
 
 <div class="modal fade" id="itemModal" tabindex="-1">
     <div class="modal-dialog">
@@ -102,28 +104,6 @@
             </div>
         </div>
     </div>
-    <!-- Modal ویرایش -->
-    <div class="modal fade" id="itemModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="modalTitle">تعریف پرسنل</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <input type="hidden" id="itemId" value="0" />
-                    <div class="mb-3"><label class="form-label">عنوان</label><input type="text" id="itemTitle" class="form-control" /></div>
-                    <div class="mb-3"><label class="form-label">کد پرسنلی</label><input type="text" id="itemCode" class="form-control" /></div>
-                    <div class="mb-3"><label class="form-label">شماره موبایل</label><input type="text" id="itemMobile" class="form-control" /></div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">انصراف</button>
-                    <button type="button" class="btn btn-primary" onclick="saveItem()">ذخیره</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
 </div>
 
 @section Scripts

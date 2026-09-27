@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using ProductionSystem.Application.IServices;
+using ProductionSystem.Application.Security;
 using ProductionSystem.Application.Services;
 using ProductionSystem.Domain.DTOs;
 using ProductionSystem.Domain.IRepositories;
@@ -19,6 +20,7 @@ namespace ProductionSystem.Controllers
             _unitOfWork = unitOfWork;
         }
 
+        [PermissionChecker(RoleChecker.WasteReceipt)]
         public async Task<IActionResult> Index()
         {
             var items = await _receiptService.GetAllAsync();
@@ -47,6 +49,7 @@ namespace ProductionSystem.Controllers
             });
         }
 
+        [PermissionChecker(RoleChecker.CreateWasteReceipt)]
         [HttpPost]
         public async Task<IActionResult> CreateAjax([FromBody] CreateWasteReceiptDto dto)
         {
@@ -54,6 +57,7 @@ namespace ProductionSystem.Controllers
             return Json(new { success = result, message = result ? "" : "خطا در ثبت رسید" });
         }
 
+        [PermissionChecker(RoleChecker.DeleteWasteReceipt)]
         [HttpPost]
         public async Task<IActionResult> DeleteAjax(int id)
         {
