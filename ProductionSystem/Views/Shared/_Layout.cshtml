@@ -507,6 +507,10 @@
                     {
                             <text>{ title: 'رسید تولید', url: '/ProductionReceipt/Index' },</text>
                     }
+                    @if (PermissionService.CheckPermission(RoleChecker.WasteReceipt.ToValue(), User.GetUserId()))
+                    { 
+                            <text>{ title: 'رسید ضایعات', url: '/WasteReceipt/Index' },</text>
+                    }
                     @if (PermissionService.CheckPermission(RoleChecker.Report.ToValue(), User.GetUserId()))
                     {
                             <text>{ title: 'گزارش تولید', url: '/Report/Production' },</text>
